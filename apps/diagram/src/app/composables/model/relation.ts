@@ -22,15 +22,20 @@ export enum ArrowStyle {
 
 export interface Relation {
   id: RelationId;
-  from: ShapeId;
-  to: ShapeId;
-  fromX: number;
-  fromY: number;
-  toX: number;
-  toY: number;
-  fromText: string;
-  toText: string;
-  middleText: string;
-  fromStyle: ArrowStyle;
-  toStyle: ArrowStyle;
+  from: {
+    id: ShapeId,
+    x: number,
+    y: number,
+    style: ArrowStyle,
+    text: string
+  },
+  to: {
+    id: ShapeId,
+    x: number,
+    y: number,
+    style: ArrowStyle,
+    text: string
+
+  },
+  text: string
 }
