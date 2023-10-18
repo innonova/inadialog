@@ -1,7 +1,7 @@
 import { doc, setDoc } from 'firebase/firestore';
 import { Color, Shape, ShapeId, ShapeType } from './model/shape';
 import { useFirestore, useDocument } from 'vuefire';
-import { Relation, RelationId } from './model/relation';
+import { ArrowStyle, Relation, RelationId } from './model/relation';
 
 export interface Diagram {
   id: string;
@@ -40,15 +40,21 @@ export const addRelation = (diagram: Diagram, from: ShapeId, to: ShapeId) => {
 
   diagram.relations.push({
     id: (maxId + 1) as RelationId,
-    from,
-    to,
-    fromX: 0,
-    fromY: 0,
-    toX: 0,
-    toY: 0,
-    fromText: '',
-    toText: '',
-    middleText: '',
+    from: {
+      id: from,
+      x: 0,
+      y: 0,
+      style: ArrowStyle.None,
+      text: '',
+    },
+    to: {
+      id: to,
+      x: 0,
+      y: 0,
+      style: ArrowStyle.None,
+      text: '',
+    },
+    text: '',
   });
 
   setDoc(doc(db, 'diagrams', diagram.id), diagram);
@@ -59,7 +65,7 @@ export const removeShape = (diagram: Diagram, id: ShapeId) => {
   const index = diagram.shapes.findIndex((item) => item.id === id);
   if (index >= 0) {
     const relations = diagram.relations.filter(
-      (item) => item.from === id || item.to === id
+      (item) => item.from.id === id || item.to.id === id
     );
     relations.forEach((rel) => {
       const relIndex = diagram.relations.findIndex(
