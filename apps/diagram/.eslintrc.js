@@ -56,6 +56,7 @@ module.exports = {
       {
         ignoreWhenNoAttributes: true,
         ignoreWhenEmpty: true,
+        "ignores": ["button"]
       },
     ],
     'vue/max-attributes-per-line': [

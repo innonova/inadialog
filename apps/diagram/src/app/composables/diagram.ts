@@ -1,13 +1,20 @@
-import { doc, setDoc } from 'firebase/firestore';
+import { addDoc, doc, setDoc } from 'firebase/firestore';
 import { Color, Shape, ShapeId, ShapeType } from './model/shape';
 import { useFirestore, useDocument } from 'vuefire';
 import { ArrowStyle, Relation, RelationId } from './model/relation';
+import { v4 as uuid } from 'uuid';
+import { Ref } from 'vue';
 
 export interface Diagram {
   id: string;
   shapes: Shape[];
   relations: Relation[];
 }
+
+export const createDiagram = async (id: string) => {
+  const db = useFirestore();
+  await setDoc(doc(db, 'diagrams', id), { id, shapes: [], relations: [] });
+};
 
 export const useDiagram = (id: string) => {
   const db = useFirestore();
@@ -18,9 +25,10 @@ export const useDiagram = (id: string) => {
 export const addShape = (diagram: Diagram) => {
   const db = useFirestore();
   const maxId = Math.max(...diagram.shapes.map((item) => item.id));
+  const id = maxId > 0 ? maxId + 1 : 1;
 
   diagram.shapes.push({
-    id: (maxId + 1) as ShapeId,
+    id: id as ShapeId,
     type: ShapeType.Rectangle,
     color: Color.White,
     x: 100,
@@ -37,9 +45,10 @@ export const addShape = (diagram: Diagram) => {
 export const addRelation = (diagram: Diagram, from: ShapeId, to: ShapeId) => {
   const db = useFirestore();
   const maxId = Math.max(...diagram.relations.map((item) => item.id));
+  const id = maxId > 0 ? maxId + 1 : 1;
 
   diagram.relations.push({
-    id: (maxId + 1) as RelationId,
+    id: id as RelationId,
     from: {
       id: from,
       x: 0,
