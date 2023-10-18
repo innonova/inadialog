@@ -73,6 +73,7 @@ module.exports = {
         extensions: ['.js', '.vue'],
       },
     ],
+    '@intlify/vue-i18n/no-raw-text': 'off',
   },
   settings: {
     'vue-i18n': {
