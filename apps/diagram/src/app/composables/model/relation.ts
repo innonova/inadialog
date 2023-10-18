@@ -16,6 +16,10 @@ export const assertRelationId: AssertRelationId = (
   }
 };
 
+export enum ArrowStyle {
+  None = 'none',
+}
+
 export interface Relation {
   id: RelationId;
   from: ShapeId;
@@ -27,4 +31,6 @@ export interface Relation {
   fromText: string;
   toText: string;
   middleText: string;
+  fromStyle: ArrowStyle;
+  toStyle: ArrowStyle;
 }
