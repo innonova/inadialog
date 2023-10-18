@@ -24,7 +24,7 @@ export enum Color {
 
 export enum ShapeType {
   Rectangle = 'rectange',
-  Oval = 'oval',
+  Ellipse = 'ellipse',
 }
 
 export interface Shape {
