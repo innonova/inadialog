@@ -128,7 +128,7 @@ onMounted(() => {
   </div>
 </template>
 
-<style lang="postcss">
+<style lang="postcss" scoped>
 @import '../../assets/css/global.css';
 #diagram {
   position: relative;
