@@ -21,7 +21,6 @@ module.exports = {
       { anonymous: 'never', named: 'never', asyncArrow: 'always' },
     ],
     'padded-blocks': 'off',
-    'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     'no-multiple-empty-lines': ['error', { max: 1 }],
     'keyword-spacing': ['error', { after: true }],
