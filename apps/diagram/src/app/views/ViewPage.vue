@@ -1,3 +1,8 @@
+<script setup lang="ts">
+import DiagramView from '../components/DiagramView.vue';
+
+</script>
+
 <template>
-    <div>View here</div>
+    <DiagramView />
 </template>
