@@ -23,7 +23,7 @@ export enum Color {
 }
 
 export enum ShapeType {
-  Rectangle = 'rectange',
+  Rectangle = 'rectangle',
   Ellipse = 'ellipse',
 }
 
