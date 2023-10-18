@@ -42,6 +42,13 @@ export const addRelation = (diagram: Diagram, from: ShapeId, to: ShapeId) => {
     id: (maxId + 1) as RelationId,
     from,
     to,
+    fromX: 0,
+    fromY: 0,
+    toX: 0,
+    toY: 0,
+    fromText: '',
+    toText: '',
+    middleText: '',
   });
 
   setDoc(doc(db, 'diagrams', diagram.id), diagram);
@@ -94,6 +101,15 @@ export const colorShape = (diagram: Diagram, id: ShapeId, color: Color) => {
   const shape = diagram.shapes.find((item) => item.id === id);
   if (shape) {
     shape.color = color;
+    setDoc(doc(db, 'diagrams', diagram.id), diagram);
+  }
+};
+
+export const setShapeText = (diagram: Diagram, id: ShapeId, text: string) => {
+  const db = useFirestore();
+  const shape = diagram.shapes.find((item) => item.id === id);
+  if (shape) {
+    shape.text = text;
     setDoc(doc(db, 'diagrams', diagram.id), diagram);
   }
 };

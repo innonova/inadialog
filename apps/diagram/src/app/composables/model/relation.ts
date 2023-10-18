@@ -20,4 +20,11 @@ export interface Relation {
   id: RelationId;
   from: ShapeId;
   to: ShapeId;
+  fromX: number;
+  fromY: number;
+  toX: number;
+  toY: number;
+  fromText: string;
+  toText: string;
+  middleText: string;
 }
