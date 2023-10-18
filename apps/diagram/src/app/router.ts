@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import ControlPage from './views/ControlPage.vue';
 import HomePage from './views/HomePage.vue';
+import ViewPage from './views/ViewPage.vue';
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -31,6 +33,18 @@ const router = createRouter({
       name: 'Home',
       component: HomePage,
       meta: { title: 'diagram' },
+    },
+    {
+      path: '/control',
+      name: 'Control',
+      component: ControlPage,
+      meta: { title: 'Control' },
+    },
+    {
+      path: '/view',
+      name: 'View',
+      component: ViewPage,
+      meta: { title: 'View' },
     },
   ],
 });
