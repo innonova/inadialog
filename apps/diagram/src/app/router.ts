@@ -41,9 +41,10 @@ const router = createRouter({
       meta: { title: 'Control' },
     },
     {
-      path: '/view',
+      path: '/view/:diagramId',
       name: 'View',
       component: ViewPage,
+      props: true,
       meta: { title: 'View' },
     },
   ],

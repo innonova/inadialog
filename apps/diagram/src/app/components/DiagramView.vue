@@ -7,6 +7,10 @@ import { useDiagram, moveShape } from '../composables/diagram';
 import RelationComponent from './diagram/RelationComponent.vue';
 import ShapeComponent from './diagram/ShapeComponent.vue';
 
+const props = defineProps<{
+  diagramId: string
+}>();
+
 const auth = useFirebaseAuth();
 const cu = useCurrentUser();
 const isLoaded = useIsCurrentUserLoaded();
@@ -27,7 +31,7 @@ watch(isLoaded, () => {
 watch(cu, () => {
   console.log('user', cu.value?.toJSON());
 });
-const diagram = useDiagram('d3b0f66b-2b74-4b95-84eb-ee9c2b131ffe');
+const diagram = useDiagram(props.diagramId);
 
 const windowProps = reactive({
   width: parent.innerHeight,

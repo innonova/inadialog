@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import DiagramView from '../components/DiagramView.vue';
 
+defineProps<{
+  diagramId: string
+}>();
 </script>
 
 <template>
-    <DiagramView />
+    <DiagramView :diagramId="$props.diagramId"/>
 </template>
