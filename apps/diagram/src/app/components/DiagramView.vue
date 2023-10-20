@@ -3,7 +3,7 @@ import { computed, onMounted, reactive, watch } from 'vue';
 import { useCurrentUser, useFirebaseAuth, useIsCurrentUserLoaded } from 'vuefire';
 import { signInAnonymously } from 'firebase/auth';
 
-import { useDiagram } from '../composables/diagram';
+import { useDiagram, moveShape } from '../composables/diagram';
 import RelationComponent from './diagram/RelationComponent.vue';
 import ShapeComponent from './diagram/ShapeComponent.vue';
 
@@ -63,7 +63,7 @@ onMounted(() => {
                 :height="shape.height"
                 :width="shape.width"
                 :text="shape.text"
-                @moveend="(position) => console.log(`end position of ${shape.id}: `, position)"/>
+                @moveend="(position) => moveShape(diagram!, shape.id, position.x, position.y)"/>
             <RelationComponent
                 v-for="relation of relations"
                 :key="relation.id"
