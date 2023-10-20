@@ -61,7 +61,8 @@ onMounted(() => {
                 :x="shape.x"
                 :y="shape.y"
                 :height="shape.height"
-                :width="shape.width" />
+                :width="shape.width"
+                :text="shape.text" />
             <RelationComponent
                 v-for="relation of relations"
                 :key="relation.id"

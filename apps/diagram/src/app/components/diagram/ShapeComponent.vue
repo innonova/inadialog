@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ShapeType } from '../../composables/model/shape';
+import TextElement from './TextElement.vue';
 
 defineProps<{
     type: ShapeType,
     x: number,
     y: number,
     height: number,
-    width: number
+    width: number,
+    text: string
 }>();
 </script>
 
@@ -26,6 +28,7 @@ defineProps<{
             :rx="$props.width"
             :ry="$props.height">
         </ellipse>
+        <TextElement :value="$props.text" :edit="true"/>
     </g>
 </template>
 
