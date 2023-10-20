@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, watch } from 'vue';
+import { onMounted, reactive, watch } from 'vue';
 import { useCurrentUser, useFirebaseAuth, useIsCurrentUserLoaded } from 'vuefire';
 import { signInAnonymously } from 'firebase/auth';
 
-import { useDiagram, moveShape } from '../composables/diagram';
+import { useDiagram } from '../composables/diagram';
 import RelationComponent from './diagram/RelationComponent.vue';
 import ShapeComponent from './diagram/ShapeComponent.vue';
 
@@ -42,8 +42,8 @@ const handleResize = () => {
   windowProps.height = parent.innerHeight;
 }
 
-const shapes = computed(() => diagram.value?.shapes);
-const relations = computed(() => diagram.value?.relations);
+const shapes = diagram.shapes;
+const relations = diagram.relations;
 
 onMounted(() => {
   window.addEventListener('resize', handleResize);
@@ -67,7 +67,7 @@ onMounted(() => {
                 :height="shape.height"
                 :width="shape.width"
                 :text="shape.text"
-                @moveend="(position) => moveShape(diagram!, shape.id, position.x, position.y)"/>
+                @moveend="(position) => diagram.moveShape(shape.id, position.x, position.y)"/>
             <RelationComponent
                 v-for="relation of relations"
                 :key="relation.id"

@@ -6,12 +6,8 @@ import {
 } from 'vuefire';
 import { watch } from 'vue';
 import { signInAnonymously } from 'firebase/auth';
-import {
-  createDiagram,
-  useDiagram,
-  addShape,
-  addRelation,
-} from '../composables/diagram';
+import { useDiagram } from '../composables/diagram';
+import { ShapeType } from '../composables/model/shape';
 
 const auth = useFirebaseAuth();
 const cu = useCurrentUser();
@@ -39,30 +35,20 @@ watch(cu, () => {
 });
 
 const diagram = useDiagram('d3b0f66b-2b74-4b95-84eb-ee9c2b131ffe');
-watch(diagram, () => {
-  if (diagram.value === null) {
-    createDiagram('d3b0f66b-2b74-4b95-84eb-ee9c2b131ffe');
-  }
-});
 
 const testAddShape = () => {
-  if (diagram.value) {
-    addShape(diagram.value);
-  }
+  diagram.addShape(ShapeType.Rectangle, 100, 100);
 };
 const testAddRelation = () => {
-  if (diagram.value) {
-    addRelation(
-      diagram.value,
-      diagram.value.shapes[0].id,
-      diagram.value.shapes[1].id
-    );
-  }
+  diagram.addRelation(
+    diagram.shapes.value[0].id,
+    diagram.shapes.value[1].id
+  );
 };
 </script>
 
 <template>
-  <pre>{{ JSON.stringify(diagram, undefined, ' ') }}</pre>
+  <pre>{{ JSON.stringify(diagram.diagram.value, undefined, ' ') }}</pre>
 
   <button @click="testAddShape()">Add Shape</button>
   <button @click="testAddRelation()">Add Relation</button>

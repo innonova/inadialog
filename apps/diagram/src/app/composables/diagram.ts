@@ -1,9 +1,9 @@
-import { addDoc, doc, setDoc } from 'firebase/firestore';
-import { Color, Shape, ShapeId, ShapeType } from './model/shape';
+import { doc, setDoc } from 'firebase/firestore';
+import { computed } from 'vue';
 import { useFirestore, useDocument } from 'vuefire';
+
 import { ArrowStyle, Relation, RelationId } from './model/relation';
-import { v4 as uuid } from 'uuid';
-import { Ref } from 'vue';
+import { Color, Shape, ShapeId, ShapeType } from './model/shape';
 
 export interface Diagram {
   id: string;
@@ -16,115 +16,122 @@ export const createDiagram = async (id: string) => {
   await setDoc(doc(db, 'diagrams', id), { id, shapes: [], relations: [] });
 };
 
-export const useDiagram = (id: string) => {
-  const db = useFirestore();
-  const diagram = useDocument<Diagram>(doc(db, 'diagrams', id));
-  return diagram;
-};
+export const useDiagram = (diagramId: string) => {
 
-export const addShape = (diagram: Diagram) => {
-  const db = useFirestore();
-  const maxId = Math.max(...diagram.shapes.map((item) => item.id));
-  const id = maxId > 0 ? maxId + 1 : 1;
+  const addShape = (type: ShapeType, x: number, y: number, color: Color = Color.White) => {
+    const maxId = Math.max(...(diagram.value?.shapes.map((item) => item.id)) || []);
+    const id = maxId > 0 ? maxId + 1 : 1;
 
-  diagram.shapes.push({
-    id: id as ShapeId,
-    type: ShapeType.Rectangle,
-    color: Color.White,
-    x: 100,
-    y: 100,
-    width: 100,
-    height: 100,
-    text: '',
-    fontSize: 10,
-  });
-
-  setDoc(doc(db, 'diagrams', diagram.id), diagram);
-};
-
-export const addRelation = (diagram: Diagram, from: ShapeId, to: ShapeId) => {
-  const db = useFirestore();
-  const maxId = Math.max(...diagram.relations.map((item) => item.id));
-  const id = maxId > 0 ? maxId + 1 : 1;
-
-  diagram.relations.push({
-    id: id as RelationId,
-    from: {
-      id: from,
-      x: 0,
-      y: 0,
-      style: ArrowStyle.None,
+    diagram.value?.shapes.push({
+      id: id as ShapeId,
+      type,
+      color,
+      x,
+      y,
+      width: 100,
+      height: 100,
       text: '',
-    },
-    to: {
-      id: to,
-      x: 0,
-      y: 0,
-      style: ArrowStyle.None,
-      text: '',
-    },
-    text: '',
-  });
-
-  setDoc(doc(db, 'diagrams', diagram.id), diagram);
-};
-
-export const removeShape = (diagram: Diagram, id: ShapeId) => {
-  const db = useFirestore();
-  const index = diagram.shapes.findIndex((item) => item.id === id);
-  if (index >= 0) {
-    const relations = diagram.relations.filter(
-      (item) => item.from.id === id || item.to.id === id
-    );
-    relations.forEach((rel) => {
-      const relIndex = diagram.relations.findIndex(
-        (item) => item.id === rel.id
-      );
-      diagram.relations.splice(relIndex, 1);
+      fontSize: 10,
     });
-    diagram.shapes.splice(index, 1);
-    setDoc(doc(db, 'diagrams', diagram.id), diagram);
-  }
-};
 
-export const removeRelation = (diagram: Diagram, id: RelationId) => {
-  const db = useFirestore();
-  const index = diagram.relations.findIndex((item) => item.id === id);
-  if (index >= 0) {
-    diagram.relations.splice(index, 1);
-    setDoc(doc(db, 'diagrams', diagram.id), diagram);
-  }
-};
+    setDoc(doc(db, 'diagrams', diagramId), diagram.value);
+  };
 
-export const moveShape = (
-  diagram: Diagram,
-  id: ShapeId,
-  x: number,
-  y: number
-) => {
-  const db = useFirestore();
-  const shape = diagram.shapes.find((item) => item.id === id);
-  if (shape) {
-    shape.x = x;
-    shape.y = y;
-    setDoc(doc(db, 'diagrams', diagram.id), diagram);
-  }
-};
+  const addRelation = (from: ShapeId, to: ShapeId) => {
+    const maxId = Math.max(...(diagram.value?.relations.map((item) => item.id) || []));
+    const id = maxId > 0 ? maxId + 1 : 1;
 
-export const colorShape = (diagram: Diagram, id: ShapeId, color: Color) => {
-  const db = useFirestore();
-  const shape = diagram.shapes.find((item) => item.id === id);
-  if (shape) {
-    shape.color = color;
-    setDoc(doc(db, 'diagrams', diagram.id), diagram);
-  }
-};
+    diagram.value?.relations.push({
+      id: id as RelationId,
+      from: {
+        id: from,
+        x: 0,
+        y: 0,
+        style: ArrowStyle.None,
+        text: '',
+      },
+      to: {
+        id: to,
+        x: 0,
+        y: 0,
+        style: ArrowStyle.None,
+        text: '',
+      },
+      text: '',
+    });
 
-export const setShapeText = (diagram: Diagram, id: ShapeId, text: string) => {
+    setDoc(doc(db, 'diagrams', diagramId), diagram.value);
+  };
+
+  const removeShape = (id: ShapeId) => {
+    const index = diagram.value?.shapes.findIndex((item) => item.id === id);
+    if (!!index && index >= 0) {
+      const relations = diagram.value?.relations.filter(
+        (item) => item.from.id === id || item.to.id === id
+      ) || [];
+      relations.forEach((rel) => {
+        const relIndex = diagram.value?.relations.findIndex(
+          (item) => item.id === rel.id
+        );
+        if (!!relIndex && relIndex >= 0) {
+          diagram.value?.relations.splice(relIndex, 1);
+        }
+      });
+      diagram.value?.shapes.splice(index, 1);
+      setDoc(doc(db, 'diagrams', diagramId), diagram.value);
+    }
+  };
+
+  const removeRelation = (id: RelationId) => {
+    const index = diagram.value?.relations.findIndex((item) => item.id === id);
+    if (!!index && index >= 0) {
+      diagram.value?.relations.splice(index, 1);
+      setDoc(doc(db, 'diagrams', diagramId), diagram.value);
+    }
+  };
+
+  const moveShape = (
+    id: ShapeId,
+    x: number,
+    y: number
+  ) => {
+    const shape = diagram.value?.shapes.find((item) => item.id === id);
+    if (shape) {
+      shape.x = x;
+      shape.y = y;
+      setDoc(doc(db, 'diagrams', diagramId), diagram.value);
+    }
+  };
+
+  const colorShape = (id: ShapeId, color: Color) => {
+    const shape = diagram.value?.shapes.find((item) => item.id === id);
+    if (shape) {
+      shape.color = color;
+      setDoc(doc(db, 'diagrams', diagramId), diagram.value);
+    }
+  };
+
+  const setShapeText = (id: ShapeId, text: string) => {
+    const shape = diagram.value?.shapes.find((item) => item.id === id);
+    if (shape) {
+      shape.text = text;
+      setDoc(doc(db, 'diagrams', diagramId), diagram.value);
+    }
+  };
+
   const db = useFirestore();
-  const shape = diagram.shapes.find((item) => item.id === id);
-  if (shape) {
-    shape.text = text;
-    setDoc(doc(db, 'diagrams', diagram.id), diagram);
+  const diagram = useDocument<Diagram>(computed(() => doc(db, 'diagrams', diagramId)));
+
+  return {
+    diagram: computed(() => diagram.value),
+    shapes: computed(() => diagram.value?.shapes || []),
+    relations: computed(() => diagram.value?.relations || []),
+    addShape,
+    removeShape,
+    addRelation,
+    removeRelation,
+    moveShape,
+    colorShape,
+    setShapeText
   }
 };
