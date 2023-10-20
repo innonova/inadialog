@@ -42,7 +42,7 @@ export function useElementSize(elementRef: Ref<SVGElement | null>) {
     computed(() => unref(elementRef)),
     (element) => {
       if (element) {
-        observer.observe(element);
+        observer?.observe(element);
       }
     }, { immediate: true, flush: 'post', deep: true });
 
