@@ -62,7 +62,8 @@ onMounted(() => {
                 :y="shape.y"
                 :height="shape.height"
                 :width="shape.width"
-                :text="shape.text" />
+                :text="shape.text"
+                @moveend="(position) => console.log(`end position of ${shape.id}: `, position)"/>
             <RelationComponent
                 v-for="relation of relations"
                 :key="relation.id"
