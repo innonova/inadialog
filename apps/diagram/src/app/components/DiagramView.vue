@@ -89,7 +89,10 @@ const cyrb53a = function(value: string, seed = 0) {
                 v-for="relation of relations"
                 :key="relation.id"
                 :from="relation.from"
-                :to="relation.to"/>
+                :to="relation.to"
+                @moveend="(position) => console.log(
+                  'endpoint moved: ', { from: position.from, to: position.to }
+                )"/>
         </g>
     </svg>
 </template>

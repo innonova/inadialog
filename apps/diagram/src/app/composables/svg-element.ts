@@ -1,4 +1,4 @@
-import { computed, onScopeDispose, ref, unref, watch } from 'vue';
+import { computed, onMounted, onScopeDispose, onUnmounted, reactive, ref, unref, watch } from 'vue';
 import type { Ref } from 'vue';
 
 type ObserverSize = {
@@ -60,5 +60,40 @@ export function useElementSize(elementRef: Ref<SVGElement | null>) {
   return {
     height,
     width
+  }
+}
+
+export function useMovement(
+  ref: Ref<SVGGElement | null>,
+  initialPosition: { x: number, y: number } = { x: 0, y: 0 }
+) {
+  const position = reactive({ x: initialPosition.x, y: initialPosition.y });
+  let origin = initialPosition
+
+  const handleClick = (event: PointerEvent) => {
+    const target = (event.target as SVGGElement);
+    target.addEventListener('pointermove', move);
+    origin = { x: event.clientX, y: event.clientY };
+
+    target.addEventListener('pointerup', () => {
+      target.removeEventListener('pointermove', move);
+    }, { once: true });
+  }
+
+  const move = (event: PointerEvent) => {
+    position.x = position.x + (event.clientX - origin.x);
+    position.y = position.y + (event.clientY - origin.y);
+    origin = { x: event.clientX, y: event.clientY };
+  };
+
+  onMounted(() => {
+    unref(ref)?.addEventListener('pointerdown', handleClick);
+  });
+  onUnmounted(() => {
+    unref(ref)?.removeEventListener('pointerdown', handleClick);
+  });
+
+  return {
+    position
   }
 }
