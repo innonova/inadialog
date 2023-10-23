@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref, unref } from 'vue';
+import { ref, unref } from 'vue';
 
 import { ShapeType } from '../../composables/model/shape';
+import { useMovement } from '../../composables/svg-element';
 import TextElement from './TextElement.vue';
 
 const props = defineProps<{
@@ -13,38 +14,19 @@ const props = defineProps<{
   text: string
 }>();
 
-const emit = defineEmits<{
+defineEmits<{
   (event: 'moveend', position: { x: number, y: number }): void
 }>();
-const position = reactive({x: props.x, y: props.y});
 const groupRef = ref<SVGGElement | null>(null);
-onMounted(() => {
-  const group = unref(groupRef);
-  if (group) {
-    group.addEventListener('pointerdown', (event: PointerEvent) => {
-      let startPosition = { x: event.clientX, y: event.clientY };
-      
-      const move = (event: PointerEvent) => {
-        position.x = position.x + (event.clientX - startPosition.x);
-        position.y = position.y + (event.clientY - startPosition.y);
-        startPosition = { x: event.clientX, y: event.clientY };
-      }
-
-      group.addEventListener('pointermove', move);
-      group.addEventListener('pointerup', () => {
-        group.removeEventListener('pointermove', move);
-        emit('moveend', unref(position));
-      }, { once: true });
-    });
-  } 
-});
+const { position } = useMovement(groupRef, { x: props.x, y: props.y });
 </script>
 
 <template>
     <g
         ref="groupRef"
         :data-type="$props.type"
-        :transform="`translate(${position.x} ${position.y})`">
+        :transform="`translate(${position.x} ${position.y})`"
+        @pointerup="() => $emit('moveend', unref(position))">
         <rect
             v-if="$props.type === ShapeType.Rectangle"
             :x="-$props.height / 2"
