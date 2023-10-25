@@ -1,5 +1,14 @@
-import { computed, onMounted, onScopeDispose, onUnmounted, reactive, ref, unref, watch } from 'vue';
-import type { Ref } from 'vue';
+import {
+  computed,
+  onMounted,
+  onScopeDispose,
+  onUnmounted,
+  ref,
+  toValue,
+  unref,
+  watch
+} from 'vue';
+import type { MaybeRefOrGetter, Ref } from 'vue';
 
 type ObserverSize = {
     readonly inlineSize: number
@@ -64,36 +73,60 @@ export function useElementSize(elementRef: Ref<SVGElement | null>) {
 }
 
 export function useMovement(
-  ref: Ref<SVGGElement | null>,
-  initialPosition: { x: number, y: number } = { x: 0, y: 0 }
+  elementRef: Ref<SVGGElement | null>,
+  initialPosition: MaybeRefOrGetter<{ x: number, y: number}>
 ) {
-  const position = reactive({ x: initialPosition.x, y: initialPosition.y });
-  let origin = initialPosition
+  const position = ref(toValue(initialPosition));
+  const movement = ref<{ x: number, y: number }>({ x: 0, y: 0 });
+  let origin = toValue(initialPosition);
 
   const handleClick = (event: PointerEvent) => {
+    event.stopPropagation();
     const target = (event.target as SVGGElement);
     target.addEventListener('pointermove', move);
     origin = { x: event.clientX, y: event.clientY };
 
     target.addEventListener('pointerup', () => {
+      event.stopPropagation();
       target.removeEventListener('pointermove', move);
     }, { once: true });
   }
 
   const move = (event: PointerEvent) => {
-    position.x = position.x + (event.clientX - origin.x);
-    position.y = position.y + (event.clientY - origin.y);
+    event.stopPropagation();
+    movement.value = {
+      x: (event.clientX - origin.x),
+      y: (event.clientY - origin.y)
+    }
+    position.value = {
+      x: position.value.x + movement.value.x,
+      y: position.value.y + movement.value.y
+    }
     origin = { x: event.clientX, y: event.clientY };
   };
 
+  const update = ({ x, y }: { x: number, y: number}) => {
+    position.value = {
+      x: position.value.x + x,
+      y: position.value.y + y
+    };
+  };
+
+  watch(initialPosition, () => {
+    const newPosition = toValue(initialPosition);
+    position.value = newPosition;
+  });
+
   onMounted(() => {
-    unref(ref)?.addEventListener('pointerdown', handleClick);
+    unref(elementRef)?.addEventListener('pointerdown', handleClick);
   });
   onUnmounted(() => {
-    unref(ref)?.removeEventListener('pointerdown', handleClick);
+    unref(elementRef)?.removeEventListener('pointerdown', handleClick);
   });
 
   return {
-    position
+    position,
+    movement,
+    update
   }
 }

@@ -93,12 +93,16 @@ export const useDiagram = (diagramId: string) => {
   const moveShape = (
     id: ShapeId,
     x: number,
-    y: number
+    y: number,
+    height: number,
+    width: number
   ) => {
     const shape = diagram.value?.shapes.find((item) => item.id === id);
     if (shape) {
       shape.x = x;
       shape.y = y;
+      shape.height = height ?? shape.height;
+      shape.width = width ?? shape.width
       setDoc(doc(db, 'diagrams', diagramId), diagram.value);
     }
   };

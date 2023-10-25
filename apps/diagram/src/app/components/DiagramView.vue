@@ -84,7 +84,8 @@ const cyrb53a = function(value: string, seed = 0) {
                 :height="shape.height"
                 :width="shape.width"
                 :text="shape.text"
-                @moveend="(position) => diagram.moveShape(shape.id, position.x, position.y)"/>
+                @moveend="(position, size) => diagram.moveShape(
+                  shape.id, position.x, position.y, size.height, size.width)"/>
             <RelationComponent
                 v-for="relation of relations"
                 :key="relation.id"
