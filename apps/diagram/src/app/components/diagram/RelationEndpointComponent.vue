@@ -32,15 +32,15 @@ watchEffect(() => {
 </template>
 
 <style lang="postcss" scoped>
-g circle:first-child {
-    fill: transparent;
+g.endpoint circle:first-child {
+  fill: transparent;
 }
-g circle:nth-child(2) {
-    pointer-events: none;
-    fill: transparent;
+g.endpoint circle:nth-child(2) {
+  pointer-events: none;
+  fill: transparent;
+  transition: fill 0.4s;
 }
-g:hover circle:nth-child(2) {
-    fill: black;
-    transition: 0.4s;
+g.endpoint:hover circle:nth-child(2) {
+  fill: black;
 }
 </style>

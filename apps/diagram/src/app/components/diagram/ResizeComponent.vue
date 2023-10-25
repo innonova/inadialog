@@ -50,36 +50,68 @@ watch(diffNW, (diff) => {
 </script>
 
 <template>
-  <circle
-    ref="refNE"
-    :cx="positionNE.x"
-    :cy="positionNE.y"
-    :r="15"
-    cursor="ne-resize">
-  </circle>
-  <circle
-    ref="refSE"
-    :cx="positionSE.x"
-    :cy="positionSE.y"
-    :r="15"
-    cursor="se-resize">
-  </circle>
-  <circle
-    ref="refSW"
-    :cx="positionSW.x"
-    :cy="positionSW.y"
-    :r="15"
-    cursor="sw-resize">
-  </circle>
-  <circle
-    ref="refNW"
-    :cx="positionNW.x"
-    :cy="positionNW.y"
-    :r="15"
-    cursor="nw-resize">
-  </circle>
+  <g class="resize">
+    <circle
+      ref="refNE"
+      :cx="positionNE.x"
+      :cy="positionNE.y"
+      :r="25"
+      cursor="ne-resize">
+    </circle>
+    <circle
+      :cx="positionNE.x"
+      :cy="positionNE.y"
+      :r="5">
+    </circle>
+    <circle
+      ref="refSE"
+      :cx="positionSE.x"
+      :cy="positionSE.y"
+      :r="25"
+      cursor="se-resize">
+    </circle>
+    <circle
+      :cx="positionSE.x"
+      :cy="positionSE.y"
+      :r="5">
+    </circle>
+    <circle
+     ref="refSW"
+      :cx="positionSW.x"
+      :cy="positionSW.y"
+      :r="25"
+      cursor="sw-resize">
+    </circle>
+    <circle
+      :cx="positionSW.x"
+      :cy="positionSW.y"
+      :r="5">
+    </circle>
+    <circle
+      ref="refNW"
+      :cx="positionNW.x"
+      :cy="positionNW.y"
+      :r="25"
+      cursor="nw-resize">
+    </circle>
+    <circle
+      :cx="positionNW.x"
+      :cy="positionNW.y"
+      :r="5">
+    </circle>
+  </g>
 </template>
 
 <style type="postcss" scoped>
-
+g.resize circle {
+  fill: transparent;
+}
+g.resize circle:nth-child(even) {
+  pointer-events: none;
+  stroke: transparent;
+  transition: fill 0.4s;
+}
+g.resize:hover circle:nth-child(even) {
+  fill: black;
+}
 </style>
