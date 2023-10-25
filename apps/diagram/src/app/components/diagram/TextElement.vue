@@ -13,6 +13,9 @@ const props = withDefaults(defineProps<Props>(), {
   x: 0,
   y: 0
 });
+defineEmits<{
+  (event: 'textchange', text: string): void
+}>();
 
 const font = computed(() => ({
   family: 'Comfortaa',
@@ -24,7 +27,7 @@ const text = ref<string>(props.value);
 const lines = computed(() => text.value.split('\n'));
 
 const textElement = ref<SVGTextElement | null>(null);
-const { height, width } = useElementSize(textElement)
+const { height, width } = useElementSize(textElement);
 </script>
 
 <template>
@@ -45,7 +48,8 @@ const { height, width } = useElementSize(textElement)
     :transform="`translate(${x - width / 2} ${y - height / 2})`">
     <textarea
       v-model="text"
-      :style="{ width: width + 'px', height: height + 4 + 'px' }">
+      :style="{ width: width + 'px', height: height + 4 + 'px' }"
+      @blur.stop="$emit('textchange', text)">
     </textarea>
   </foreignObject>
 </template>

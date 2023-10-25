@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { ref, reactive, unref } from 'vue';
+import { inject, ref, reactive, unref } from 'vue';
 
-import { ShapeType } from '../../composables/model/shape';
+import { ShapeId, ShapeType } from '../../composables/model/shape';
 import { useMovement } from '../../composables/svg-element';
 import ResizeComponent from './ResizeComponent.vue';
 import type { Corner } from './ResizeComponent.vue';
 import TextElement from './TextElement.vue';
 
 const props = defineProps<{
+  id: ShapeId,
   type: ShapeType,
   x: number,
   y: number,
@@ -21,6 +22,9 @@ defineEmits<{
     position: { x: number, y: number },
     size: { height: number, width: number }): void
 }>();
+
+const diagram = inject<{ setShapeText(shapeId: ShapeId, text: string ): void}>('diagram');
+
 const groupRef = ref<SVGGElement | null>(null);
 const { position, update } = useMovement(groupRef, () => ({ x: props.x, y: props.y }));
 
@@ -69,7 +73,10 @@ const resize = (corner: Corner, diff: { x: number, y: number }) => {
             :rx="size.width * Math.SQRT1_2"
             :ry="size.height * Math.SQRT1_2">
         </ellipse>
-        <TextElement :value="$props.text" :edit="true"/>
+        <TextElement
+          :value="$props.text"
+          :edit="true"
+          @textchange="(text) => diagram?.setShapeText($props.id, text)"/>
         <ResizeComponent
           :height="size.height"
           :width="size.width"

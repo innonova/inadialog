@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, watch } from 'vue';
+import { onMounted, provide, reactive, watch } from 'vue';
 import { useCurrentUser, useFirebaseAuth, useIsCurrentUserLoaded } from 'vuefire';
 import { signInAnonymously } from 'firebase/auth';
 
@@ -32,6 +32,7 @@ watch(cu, () => {
   console.log('user', cu.value?.toJSON());
 });
 const diagram = useDiagram(props.diagramId);
+provide('diagram', diagram);
 
 const windowProps = reactive({
   width: parent.innerHeight,
@@ -78,12 +79,7 @@ const cyrb53a = function(value: string, seed = 0) {
             <ShapeComponent
                 v-for="shape of shapes"
                 :key="`${cyrb53a(JSON.stringify(shape))}`"
-                :type="shape.type"
-                :x="shape.x"
-                :y="shape.y"
-                :height="shape.height"
-                :width="shape.width"
-                :text="shape.text"
+                v-bind="shape"
                 @moveend="(position, size) => diagram.moveShape(
                   shape.id, position.x, position.y, size.height, size.width)"/>
             <RelationComponent
