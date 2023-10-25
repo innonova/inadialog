@@ -79,9 +79,7 @@ const cyrb53a = function(value: string, seed = 0) {
             <ShapeComponent
                 v-for="shape of shapes"
                 :key="`${cyrb53a(JSON.stringify(shape))}`"
-                v-bind="shape"
-                @moveend="(position, size) => diagram.moveShape(
-                  shape.id, position.x, position.y, size.height, size.width)"/>
+                v-bind="shape"/>
             <RelationComponent
                 v-for="relation of relations"
                 :key="relation.id"

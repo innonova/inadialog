@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, ref, reactive, unref } from 'vue';
+import { inject, ref, reactive } from 'vue';
 
 import { ShapeId, ShapeType } from '../../composables/model/shape';
 import { useMovement } from '../../composables/svg-element';
@@ -17,13 +17,11 @@ const props = defineProps<{
   text: string
 }>();
 
-defineEmits<{
-  (event: 'moveend',
-    position: { x: number, y: number },
-    size: { height: number, width: number }): void
-}>();
-
-const diagram = inject<{ setShapeText(shapeId: ShapeId, text: string ): void}>('diagram');
+interface Diagram {
+  moveShape(id: ShapeId, x: number, y: number, height: number, width: number): void
+  setShapeText(shapeId: ShapeId, text: string ): void
+}
+const diagram = inject<Diagram>('diagram');
 
 const groupRef = ref<SVGGElement | null>(null);
 const { position, update } = useMovement(groupRef, () => ({ x: props.x, y: props.y }));
@@ -51,6 +49,10 @@ const resize = (corner: Corner, diff: { x: number, y: number }) => {
     break;
   }
 }
+
+const commitMove = () => {
+  diagram?.moveShape(props.id, position.value.x, position.value.y, size.height, size.width);
+};
 </script>
 
 <template>
@@ -58,9 +60,7 @@ const resize = (corner: Corner, diff: { x: number, y: number }) => {
         ref="groupRef"
         :data-type="$props.type"
         :transform="`translate(${position.x} ${position.y})`"
-        @pointerup="() => {
-          $emit('moveend', unref(position), unref(size));
-        }">
+        @pointerup="commitMove">
         <rect
             v-if="$props.type === ShapeType.Rectangle"
             :x="-size.width / 2"
