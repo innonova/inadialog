@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, ref, reactive } from 'vue';
+import { inject, ref, reactive, watch } from 'vue';
 
 import { ShapeId, ShapeType } from '../../composables/model/shape';
 import { useMovement } from '../../composables/svg-element';
@@ -27,6 +27,10 @@ const groupRef = ref<SVGGElement | null>(null);
 const { position, update } = useMovement(groupRef, () => ({ x: props.x, y: props.y }));
 
 const size = reactive({ height: props.height, width: props.width });
+watch(() => ({ height: props.height, width: props.width }), (value) => {
+  size.height = value.height;
+  size.width = value.width;
+});
 
 const resize = (corner: Corner, diff: { x: number, y: number }) => {
   update({ x: diff.x / 2, y: diff.y / 2 });

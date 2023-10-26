@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import { useElementSize } from '../../composables/svg-element';
 
@@ -28,6 +28,10 @@ const lines = computed(() => text.value.split('\n'));
 
 const textElement = ref<SVGTextElement | null>(null);
 const { height, width } = useElementSize(textElement);
+
+watch(() => props.value, (value) => {
+  text.value = value;
+});
 </script>
 
 <template>
