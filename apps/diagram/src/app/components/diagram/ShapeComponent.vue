@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { inject, ref, reactive, watch } from 'vue';
+import { inject, ref, reactive, onMounted, onUnmounted, watch } from 'vue';
+import type { Ref } from 'vue';
 
 import { ShapeId, ShapeType } from '../../composables/model/shape';
 import { useMovement } from '../../composables/svg-element';
@@ -21,7 +22,12 @@ interface Diagram {
   moveShape(id: ShapeId, x: number, y: number, height: number, width: number): void
   setShapeText(shapeId: ShapeId, text: string ): void
 }
+interface Shapes {
+  register(id: ShapeId, position: Ref<{ x: number, y: number }>): void
+  unregister(id: ShapeId): void
+}
 const diagram = inject<Diagram>('diagram');
+const shapes = inject<Shapes>('shapes');
 
 const groupRef = ref<SVGGElement | null>(null);
 const { position, update } = useMovement(groupRef, () => ({ x: props.x, y: props.y }));
@@ -57,10 +63,19 @@ const resize = (corner: Corner, diff: { x: number, y: number }) => {
 const commitMove = () => {
   diagram?.moveShape(props.id, position.value.x, position.value.y, size.height, size.width);
 };
+
+onMounted(() => {
+  shapes?.register(props.id, position);
+})
+
+onUnmounted(() => {
+  shapes?.unregister(props.id);
+})
 </script>
 
 <template>
     <g
+        :id="$props.id.toString()"
         ref="groupRef"
         :data-type="$props.type"
         :transform="`translate(${position.x} ${position.y})`"

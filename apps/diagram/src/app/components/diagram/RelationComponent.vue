@@ -3,20 +3,25 @@ import { reactive } from 'vue';
 
 import { path } from '../../composables/curve';
 import type { Point } from '../../composables/curve';
+import type { ShapeId } from '../../composables/model/shape';
+import { saveInject} from '../../composables/provide';
 
 import RelationEndpointComponent from './RelationEndpointComponent.vue';
+import { RelationId } from '../../composables/model/relation';
 
 const props = defineProps<{
-  from: Point,
-  to: Point
+  id: RelationId,
+  from: { id: ShapeId },
+  to: { id: ShapeId }
 }>();
 
-const start = reactive(props.from);
-const end = reactive(props.to);
+interface Diagram {
+  connect(id: RelationId, shapedId: ShapeId, type: 'start' | 'end'): void
+};
+const diagram = saveInject<Diagram>('diagram');
 
-const emit = defineEmits<{
-  (event: 'moveend', position: { from: Point, to: Point }): void;
-}>();
+const start = reactive<Point>({ x: 0, y: 0 });
+const end = reactive<Point>({ x: 0, y: 0 });
 
 const moveStart = (position: Point) => {
   start.x = position.x;
@@ -26,8 +31,10 @@ const moveEnd = (position: Point) => {
   end.x = position.x;
   end.y = position.y;
 }
-const moved = () => {
-  emit('moveend', { from: { x: start.x, y: start.y }, to: { x: end.x, y: end.y }});
+
+const connect = (shapeId: ShapeId, type: 'start' | 'end') => {
+  console.log(`connect relation ${props.id} ${type}point to shape ${shapeId}`);
+  diagram?.connect(props.id, shapeId, type);
 }
 </script>
 
@@ -35,13 +42,15 @@ const moved = () => {
     <g data-type="curve">
         <path :d="path(start, end)"></path>
         <RelationEndpointComponent
-            :position="$props.from"
+            :shapeId="from.id"
+            type="start"
             @move="moveStart"
-            @pointerup="moved" />
+            @connect="connect" />
         <RelationEndpointComponent
-            :position="$props.to"
+            :shapeId="to.id"
+            type="end"
             @move="moveEnd"
-            @pointerup="moved"/>
+            @connect="connect"/>
     </g>
 </template>
 

@@ -25,6 +25,9 @@ const controlPoint = (start: Point, end: Point) => {
   const diff = sub(end, start);
 
   const len = Math.hypot(diff.x, diff.y);
+  if (len <= 0) {
+    return start;
+  }
   const factor = (diff.x * diff.y) / (2 * len);
   //const factor = Math.abs(len / (diff.x + diff.y)) * 50;
 

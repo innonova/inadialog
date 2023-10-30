@@ -6,6 +6,7 @@ import { signInAnonymously } from 'firebase/auth';
 import { useDiagram } from '../composables/diagram';
 import RelationComponent from './diagram/RelationComponent.vue';
 import ShapeComponent from './diagram/ShapeComponent.vue';
+import { useShapes } from '../composables/shapes';
 
 const props = defineProps<{
   diagramId: string
@@ -34,8 +35,10 @@ watch(cu, () => {
 const diagram = useDiagram(props.diagramId);
 provide('diagram', diagram);
 
+provide('shapes', useShapes());
+
 const windowProps = reactive({
-  width: parent.innerHeight,
+  width: parent.innerWidth,
   height: parent.innerHeight
 })
 const handleResize = () => {
@@ -66,11 +69,7 @@ onMounted(() => {
             <RelationComponent
                 v-for="relation of relations"
                 :key="relation.id"
-                :from="relation.from"
-                :to="relation.to"
-                @moveend="(position) => console.log(
-                  'endpoint moved: ', { from: position.from, to: position.to }
-                )"/>
+                v-bind="relation"/>
         </g>
     </svg>
 </template>

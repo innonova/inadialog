@@ -41,19 +41,24 @@ export const useDiagram = (diagramId: string) => {
     const maxId = Math.max(...(diagram.value?.relations.map((item) => item.id) || []));
     const id = maxId > 0 ? maxId + 1 : 1;
 
+    const fromShape = diagram.value?.shapes
+      .find((shape) => shape.id = from) || { x: 0, y: 0 };
+    const toShape = diagram.value?.shapes
+      .find((shape) => shape.id = to) || { x: 0, y: 0 };
+
     diagram.value?.relations.push({
       id: id as RelationId,
       from: {
         id: from,
-        x: 0,
-        y: 0,
+        x: fromShape.x,
+        y: fromShape.y,
         style: ArrowStyle.None,
         text: '',
       },
       to: {
         id: to,
-        x: 0,
-        y: 0,
+        x: toShape.x,
+        y: toShape.y,
         style: ArrowStyle.None,
         text: '',
       },
@@ -105,6 +110,18 @@ export const useDiagram = (diagramId: string) => {
       shape.width = width ?? shape.width
       setDoc(doc(db, 'diagrams', diagramId), diagram.value);
     }
+    // update connected relations
+    diagram.value?.relations
+      .forEach((relation) => {
+        if (relation.from.id === id) {
+          relation.from.x = x;
+          relation.from.y = y;
+        }
+        if (relation.to.id === id) {
+          relation.to.x = x;
+          relation.to.y = y;
+        }});
+    setDoc(doc(db, 'diagrams', diagramId), diagram.value);
   };
 
   const colorShape = (id: ShapeId, color: Color) => {
@@ -114,6 +131,25 @@ export const useDiagram = (diagramId: string) => {
       setDoc(doc(db, 'diagrams', diagramId), diagram.value);
     }
   };
+
+  const connect = (id: RelationId, shapeId: ShapeId, type: 'start' | 'end') => {
+    const shape = diagram.value?.shapes.find((item) => item.id === shapeId);
+    const relation = diagram.value?.relations.find((item) => item.id === id);
+    if (!shape || !relation) {
+      return;
+    }
+
+    if (type === 'start') {
+      relation.from.id = shapeId;
+      relation.from.x = shape.x;
+      relation.from.y = shape.y;
+    } else {
+      relation.to.id = shapeId;
+      relation.to.x = shape.x;
+      relation.to.y = shape.y;
+    }
+    setDoc(doc(db, 'diagrams', diagramId), diagram.value);
+  }
 
   const setShapeText = (id: ShapeId, text: string) => {
     const shape = diagram.value?.shapes.find((item) => item.id === id);
@@ -135,6 +171,7 @@ export const useDiagram = (diagramId: string) => {
     addRelation,
     removeRelation,
     moveShape,
+    connect,
     colorShape,
     setShapeText
   }
