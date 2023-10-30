@@ -58,6 +58,7 @@ const connect = (shapeId: ShapeId, type: 'start' | 'end') => {
 g path {
     fill: transparent;
     stroke: #222;
+    stroke-width: 2;
     pointer-events: stroke;
 }
 </style>

@@ -77,11 +77,13 @@ onUnmounted(() => {
     <g
         :id="$props.id.toString()"
         ref="groupRef"
+        class="white"
         :data-type="$props.type"
         :transform="`translate(${position.x} ${position.y})`"
         @pointerup="commitMove">
         <rect
             v-if="$props.type === ShapeType.Rectangle"
+            rx="15"
             :x="-size.width / 2"
             :y="-size.height / 2"
             :width="size.width"
@@ -105,8 +107,11 @@ onUnmounted(() => {
 
 <style lang="postcss" scoped>
 g rect, g ellipse {
-    fill: transparent;
+    fill: white;
     stroke: #222;
+}
+g.white:hover rect, g.white:hover ellipse {
+  filter: drop-shadow(3px 3px 6px #222);
 }
 g circle.resize-ne {
   cursor: ne-resize;
