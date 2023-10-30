@@ -33,7 +33,7 @@ const moveEnd = (position: Point) => {
 }
 
 const connect = (shapeId: ShapeId, type: 'start' | 'end') => {
-  console.log(`connect relation ${props.id} ${type}point to shape ${shapeId}`);
+  //console.log(`connect relation ${props.id} ${type}point to shape ${shapeId}`);
   diagram?.connect(props.id, shapeId, type);
 }
 </script>

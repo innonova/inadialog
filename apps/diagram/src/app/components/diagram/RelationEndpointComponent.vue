@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref, watchEffect } from 'vue';
+import { onMounted, reactive, ref, watch, watchEffect } from 'vue';
 import type { Ref, WatchStopHandle } from 'vue';
 
 import type { Point } from '../../composables/curve';
@@ -48,21 +48,29 @@ const dropEndpoint = () => {
   const shapePositionRef = shapes.getPosition(+shapeGroup.id as ShapeId);
   if (shapePositionRef) {
     stopWatch();
-    stopWatch = trackMovement();
+    stopWatch = trackMovement(shapePositionRef);
     emit('connect', +shapeGroup.id as ShapeId, props.type);
   }
 };
 
-const trackMovement = () => watchEffect(() => {
-  const shapePosition = shapes.getPosition(props.shapeId)
+const trackShapeId = () => watch(() => props.shapeId, (newShapeId, oldShapeId) => {
+  if (newShapeId !== oldShapeId) {
+    //console.log(`moved ${props.type}point from shape ${oldShapeId} to shape ${newShapeId}`)
+    const shapePosition = shapes.getPosition(newShapeId);
+    stopWatch();
+    stopWatch = trackMovement(shapePosition);
+  }
+}, { immediate: true });
+
+const trackMovement = (shapePosition: Ref<{ x: number, y: number }>) => watchEffect(() => {
   position.x = shapePosition.value.x;
   position.y = shapePosition.value.y;
   emit('move', position);
 });
 
-let stopWatch: WatchStopHandle;
+let stopWatch: WatchStopHandle = () => { return; };
 onMounted(() => {
-  stopWatch = trackMovement();
+  trackShapeId();
 });
 </script>
 
