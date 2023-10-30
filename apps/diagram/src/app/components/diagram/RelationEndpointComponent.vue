@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref, toValue, watchEffect } from 'vue';
-import type { MaybeRefOrGetter, Ref, WatchStopHandle } from 'vue';
+import { onMounted, reactive, ref, watchEffect } from 'vue';
+import type { Ref, WatchStopHandle } from 'vue';
 
 import type { Point } from '../../composables/curve';
 import type { ShapeId } from '../../composables/model/shape';
@@ -9,7 +9,7 @@ import { saveInject} from '../../composables/provide';
 import { useMovement } from '../../composables/svg-element';
 
 const props = defineProps<{
-  shapeId: MaybeRefOrGetter<ShapeId>,
+  shapeId: ShapeId,
   type: 'start' | 'end'
 }>();
 
@@ -31,7 +31,6 @@ const shape = (...types: string[]) =>
   (element: Element) => types.includes(element.parentElement?.getAttribute('data-type') || '');
 
 const disconnect = () => {
-  stopIdTracking();
   stopWatch();
   stopWatch = watchEffect(() => {
     position.x = position.x + movement.value.x;
@@ -49,31 +48,21 @@ const dropEndpoint = () => {
   const shapePositionRef = shapes.getPosition(+shapeGroup.id as ShapeId);
   if (shapePositionRef) {
     stopWatch();
-    stopWatch = watchEffect(() => {
-      const shapePosition = shapes.getPosition(toValue(props.shapeId));
-      position.x = shapePosition.value.x;
-      position.y = shapePosition.value.y;
-      emit('move', position);
-    });
+    stopWatch = trackMovement();
     emit('connect', +shapeGroup.id as ShapeId, props.type);
-    stopIdTracking = trackShapeId(props.shapeId);
   }
 };
 
-const trackShapeId = (shapeId: MaybeRefOrGetter) => watchEffect(() => {
-  console.log(`${props.type}point connected to shape: `, toValue(shapeId));
+const trackMovement = () => watchEffect(() => {
+  const shapePosition = shapes.getPosition(props.shapeId)
+  position.x = shapePosition.value.x;
+  position.y = shapePosition.value.y;
+  emit('move', position);
 });
 
 let stopWatch: WatchStopHandle;
-let stopIdTracking: WatchStopHandle;
 onMounted(() => {
-  stopIdTracking = trackShapeId(props.shapeId);
-  stopWatch = watchEffect(() => {
-    const shapePosition = shapes.getPosition(toValue(props.shapeId))
-    position.x = shapePosition.value.x + movement.value.x;
-    position.y = shapePosition.value.y + movement.value.y;
-    emit('move', position);
-  });
+  stopWatch = trackMovement();
 });
 </script>
 
