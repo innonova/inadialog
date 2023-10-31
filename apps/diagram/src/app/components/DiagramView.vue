@@ -51,10 +51,38 @@ const handleResize = () => {
   windowProps.height = parent.innerHeight;
 }
 
+type ShapeProperties = {
+  id: ShapeId,
+  type: ShapeType,
+  height: number,
+  width: number,
+  x: number,
+  y: number,
+  color: Color,
+  text: string
+}
+const transientShape: Ref<ShapeProperties | null> = ref(null);
 const createShape = (type: ShapeType) => {
   return () => {
-    const { x, y } = toValue(mouse);
-    diagram.addShape(type, x, y, Color.White)
+    const stopWatch = watch(mouse, ({ x, y }) => {
+      transientShape.value = {
+        id: 0 as ShapeId,
+        type,
+        height: 50,
+        width: 50,
+        x,
+        y,
+        text: '',
+        color: Color.White
+      }
+    });
+
+    return () => {
+      stopWatch();
+      transientShape.value = null;
+      const { x, y } = toValue(mouse); 
+      diagram.addShape(type, x, y, Color.White);
+    }
   }
 }
 
@@ -118,6 +146,10 @@ onMounted(() => {
                 v-for="relation of relations"
                 :key="relation.id"
                 v-bind="relation"/>
+            <ShapeComponent
+                v-if="transientShape"
+                v-bind="transientShape"
+            />
         </g>
     </svg>
 </template>
