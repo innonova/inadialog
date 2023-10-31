@@ -31,21 +31,31 @@ const refNW = ref<SVGCircleElement | null>(null);
 const { position: positionNW, movement: diffNW } = useMovement(
   refNW, () => ({ x: -size.value.width / 2, y: -size.value.height / 2 }));
 
+const updateSize = (corner: Corner, { x, y }: { x: number, y: number}) => {
+  const diff = { x: 0, y: 0 };
+  if (size.value.width + x > 25) {
+    diff.x = x;
+  }
+  if (size.value.height + y > 25) {
+    diff.y = y;
+  }
+  size.value = {
+    height: size.value.height + diff.y,
+    width: size.value.width + diff.x
+  }
+  emit('resize', corner, diff);
+}
 watch(diffNE, (diff) => {
-  size.value = { height: size.value.height - diff.y, width: size.value.width + diff.x };
-  emit('resize', 'ne', diff);
+  updateSize('ne', { x: diff.x, y: -diff.y });
 })
 watch(diffSE, (diff) => {
-  size.value = { height: size.value.height + diff.y, width: size.value.width + diff.x };
-  emit('resize', 'se', diff);
+  updateSize('se', { x: diff.x, y: diff.y });
 })
 watch(diffSW, (diff) => {
-  size.value = { height: size.value.height + diff.y, width: size.value.width - diff.x };
-  emit('resize', 'sw', diff);
+  updateSize('sw', { x: -diff.x, y: diff.y });
 })
 watch(diffNW, (diff) => {
-  size.value = { height: size.value.height - diff.y, width: size.value.width - diff.x };
-  emit('resize', 'nw', diff);
+  updateSize('nw', { x: -diff.x, y: -diff.y });
 })
 </script>
 

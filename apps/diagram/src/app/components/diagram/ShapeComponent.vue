@@ -40,23 +40,20 @@ watch(() => ({ height: props.height, width: props.width }), (value) => {
 });
 
 const resize = (corner: Corner, diff: { x: number, y: number }) => {
-  update({ x: diff.x / 2, y: diff.y / 2 });
+  size.width = size.width + diff.x;
+  size.height = size.height + diff.y;
   switch (corner) {
   case 'ne':
-    size.width = size.width + diff.x;
-    size.height = size.height - diff.y;
+    update({ x: diff.x / 2, y: -diff.y / 2 });
     break;
   case 'se':
-    size.width = size.width + diff.x;
-    size.height = size.height + diff.y;
+    update({ x: diff.x / 2, y: diff.y / 2 });
     break;
   case 'sw':
-    size.width = size.width - diff.x;
-    size.height = size.height + diff.y;
+    update({ x: -diff.x / 2, y: diff.y / 2 });
     break;
   case 'nw':
-    size.width = size.width - diff.x;
-    size.height = size.height - diff.y;
+    update({ x: -diff.x / 2, y: -diff.y / 2 });
     break;
   }
 }
