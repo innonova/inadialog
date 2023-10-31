@@ -5,6 +5,14 @@ import { useFirestore, useDocument } from 'vuefire';
 import { ArrowStyle, Relation, RelationId } from './model/relation';
 import { Color, Shape, ShapeId, ShapeType } from './model/shape';
 
+type HasId = {
+  id: number
+}
+const findMaxId = (objects: HasId[]) => {
+  const maxId = Math.max(...(objects.map((item) => item.id)) || []);
+  return maxId > 0 ? maxId + 1 : 1;
+}
+
 export interface Diagram {
   id: string;
   shapes: Shape[];
@@ -19,8 +27,7 @@ export const createDiagram = async (id: string) => {
 export const useDiagram = (diagramId: string) => {
 
   const addShape = (type: ShapeType, x: number, y: number, color: Color = Color.White) => {
-    const maxId = Math.max(...(diagram.value?.shapes.map((item) => item.id)) || []);
-    const id = maxId > 0 ? maxId + 1 : 1;
+    const id = findMaxId(diagram.value ? diagram.value.shapes : []);
 
     diagram.value?.shapes.push({
       id: id as ShapeId,
@@ -38,8 +45,7 @@ export const useDiagram = (diagramId: string) => {
   };
 
   const addRelation = (from: ShapeId, to: ShapeId) => {
-    const maxId = Math.max(...(diagram.value?.relations.map((item) => item.id) || []));
-    const id = maxId > 0 ? maxId + 1 : 1;
+    const id = findMaxId(diagram.value ? diagram.value.relations : []);
 
     const fromShape = diagram.value?.shapes
       .find((shape) => shape.id === from) || { x: 0, y: 0 };
