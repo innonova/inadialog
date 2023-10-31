@@ -42,9 +42,9 @@ export const useDiagram = (diagramId: string) => {
     const id = maxId > 0 ? maxId + 1 : 1;
 
     const fromShape = diagram.value?.shapes
-      .find((shape) => shape.id = from) || { x: 0, y: 0 };
+      .find((shape) => shape.id === from) || { x: 0, y: 0 };
     const toShape = diagram.value?.shapes
-      .find((shape) => shape.id = to) || { x: 0, y: 0 };
+      .find((shape) => shape.id === to) || { x: 0, y: 0 };
 
     diagram.value?.relations.push({
       id: id as RelationId,
