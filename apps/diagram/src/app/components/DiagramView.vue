@@ -12,6 +12,7 @@ import { useMouse } from '../composables/mouse';
 import { useShapes } from '../composables/shapes';
 import RelationComponent from './diagram/RelationComponent.vue';
 import ShapeComponent from './diagram/ShapeComponent.vue';
+import { path } from '../composables/curve';
 
 const props = defineProps<{
   diagramId: string
@@ -40,7 +41,8 @@ watch(cu, () => {
 const diagram = useDiagram(props.diagramId);
 provide('diagram', diagram);
 
-provide('shapes', useShapes());
+const shapeStore = useShapes();
+provide('shapes', shapeStore);
 
 const windowProps = reactive({
   width: parent.innerWidth,
@@ -66,7 +68,7 @@ const createShape = (type: ShapeType) => {
   return () => {
     const stopWatch = watch(mouse, ({ x, y }) => {
       transientShape.value = {
-        id: 0 as ShapeId,
+        id: 999999 as ShapeId,
         type,
         height: 50,
         width: 50,
@@ -112,6 +114,32 @@ const changeColor = (color: Color) => {
   }
 }
 
+const transientPath: Ref<string | null> = ref(null);
+const connectShapes = () => {
+  const fromShapeId = getSelectedShapeId();
+  if (fromShapeId === null) {
+    // no shape at mouse position found
+    return;
+  }
+
+  const start = toValue(shapeStore.getPosition(fromShapeId));
+  const stopWatch = watch(mouse, () => {
+    const end = toValue(mouse);
+    transientPath.value = path(start, end);
+  });
+
+  return () => {
+    stopWatch();
+    transientPath.value = null;
+    const toShapeId = getSelectedShapeId();
+    if (toShapeId === null) {
+      // no shape at mouse position found to connect to
+      return;
+    }
+    diagram.addRelation(fromShapeId, toShapeId);
+  }
+}
+
 const svgElement: Ref<SVGSVGElement | null> = ref(null);
 const { registerHook } = useHotkeys(svgElement);
 // create different shapes
@@ -127,6 +155,9 @@ registerHook('2', changeColor(Color.Green))
 registerHook('3', changeColor(Color.Blue))
 registerHook('4', changeColor(Color.Yellow))
 registerHook('5', changeColor(Color.White))
+
+// connect shapes
+registerHook('r', connectShapes);
 
 const { position: mouse } = useMouse(svgElement);
 
@@ -160,6 +191,19 @@ onMounted(() => {
                 v-if="transientShape"
                 v-bind="transientShape"
             />
+            <path
+                v-if="transientPath"
+                :d="transientPath">
+            </path>
         </g>
     </svg>
 </template>
+
+<style lang="postcss">
+g path {
+    fill: transparent;
+    stroke: #222;
+    stroke-width: 2;
+    pointer-events: stroke;
+}
+</style>
