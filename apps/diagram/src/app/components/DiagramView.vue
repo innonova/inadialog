@@ -6,7 +6,7 @@ import { signInAnonymously } from 'firebase/auth';
 
 import { useDiagram } from '../composables/diagram';
 import { useHotkeys } from '../composables/hotkeys';
-import { Color } from '../composables/model/shape';
+import { Color, ShapeType } from '../composables/model/shape';
 import type { ShapeId } from '../composables/model/shape';
 import { useMouse } from '../composables/mouse';
 import { useShapes } from '../composables/shapes';
@@ -51,6 +51,13 @@ const handleResize = () => {
   windowProps.height = parent.innerHeight;
 }
 
+const createShape = (type: ShapeType) => {
+  return () => {
+    const { x, y } = toValue(mouse);
+    diagram.addShape(type, x, y, Color.White)
+  }
+}
+
 const filterShape = (...types: string[]) =>
   (element: Element) => types.includes(element.parentElement?.getAttribute('data-type') || '');
 
@@ -72,6 +79,11 @@ const changeColor = (color: Color) => {
 
 const svgElement: Ref<SVGSVGElement | null> = ref(null);
 const { registerHook } = useHotkeys(svgElement);
+// create different shapes
+registerHook('e', createShape(ShapeType.Rectangle));
+registerHook('q', createShape(ShapeType.Ellipse));
+
+// change color of shape
 registerHook('1', changeColor(Color.Red))
 registerHook('2', changeColor(Color.Green))
 registerHook('3', changeColor(Color.Blue))
