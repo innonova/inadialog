@@ -2,7 +2,7 @@
 import { inject, ref, reactive, onMounted, onUnmounted, watch } from 'vue';
 import type { Ref } from 'vue';
 
-import { ShapeId, ShapeType } from '../../composables/model/shape';
+import { Color, ShapeId, ShapeType } from '../../composables/model/shape';
 import { useMovement } from '../../composables/svg-element';
 import ResizeComponent from './ResizeComponent.vue';
 import type { Corner } from './ResizeComponent.vue';
@@ -15,7 +15,8 @@ const props = defineProps<{
   y: number,
   height: number,
   width: number,
-  text: string
+  text: string,
+  color: Color
 }>();
 
 interface Diagram {
@@ -77,7 +78,7 @@ onUnmounted(() => {
     <g
         :id="$props.id.toString()"
         ref="groupRef"
-        class="white"
+        :class="$props.color"
         :data-type="$props.type"
         :transform="`translate(${position.x} ${position.y})`"
         @pointerup="commitMove">
@@ -106,7 +107,35 @@ onUnmounted(() => {
 </template>
 
 <style lang="postcss" scoped>
-g rect, g ellipse {
+g.red rect, g.red ellipse {
+    fill: #ffe6ea;
+    stroke: #ffbfc7;
+}
+g.red:hover rect, g.red:hover ellipse {
+  filter: drop-shadow(3px 3px 6px #de1d33);
+}
+g.green rect, g.green ellipse {
+    fill: #ebffe6;
+    stroke: #c9ffbf;
+}
+g.green:hover rect, g.green:hover ellipse {
+  filter: drop-shadow(3px 3px 6px #3ade1d);
+}
+g.blue rect, g.blue ellipse {
+    fill: #e6f4ff;
+    stroke: #bee0ff;
+}
+g.blue:hover rect, g.blue:hover ellipse {
+  filter: drop-shadow(3px 3px 6px #1d81de);
+}
+g.yellow rect, g.yellow ellipse {
+    fill: #fff7e6;
+    stroke: #ffeebf;
+}
+g.yellow:hover rect, g.yellow:hover ellipse {
+  filter: drop-shadow(3px 3px 6px #deaa1d);
+}
+g.white rect, g.white ellipse {
     fill: white;
     stroke: #222;
 }

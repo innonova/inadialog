@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { onMounted, provide, reactive, ref, watch } from 'vue';
+import { onMounted, provide, reactive, ref, toValue, watch } from 'vue';
 import type { Ref } from 'vue';
 import { useCurrentUser, useFirebaseAuth, useIsCurrentUserLoaded } from 'vuefire';
 import { signInAnonymously } from 'firebase/auth';
 
 import { useDiagram } from '../composables/diagram';
+import { useHotkeys } from '../composables/hotkeys';
+import { Color } from '../composables/model/shape';
+import type { ShapeId } from '../composables/model/shape';
+import { useMouse } from '../composables/mouse';
+import { useShapes } from '../composables/shapes';
 import RelationComponent from './diagram/RelationComponent.vue';
 import ShapeComponent from './diagram/ShapeComponent.vue';
-import { useShapes } from '../composables/shapes';
-import { useHotkeys } from '../composables/hotkeys';
 
 const props = defineProps<{
   diagramId: string
@@ -48,8 +51,34 @@ const handleResize = () => {
   windowProps.height = parent.innerHeight;
 }
 
+const filterShape = (...types: string[]) =>
+  (element: Element) => types.includes(element.parentElement?.getAttribute('data-type') || '');
+
+const getSelectedShapeId = (): ShapeId | null => {
+  const { x, y } = toValue(mouse);
+  const element: Element | null = document.elementsFromPoint(x, y)
+    .find(filterShape('ellipse', 'rectangle')) || null;
+  return element?.parentElement ? +element.parentElement.id as ShapeId : null;
+}
+
+const changeColor = (color: Color) => {
+  return () => {
+    const shapeId: ShapeId | null = getSelectedShapeId();
+    if (shapeId !== null) {
+      diagram.colorShape(shapeId, color);
+    }
+  }
+}
+
 const svgElement: Ref<SVGSVGElement | null> = ref(null);
-useHotkeys(svgElement);
+const { registerHook } = useHotkeys(svgElement);
+registerHook('1', changeColor(Color.Red))
+registerHook('2', changeColor(Color.Green))
+registerHook('3', changeColor(Color.Blue))
+registerHook('4', changeColor(Color.Yellow))
+registerHook('5', changeColor(Color.White))
+
+const { position: mouse } = useMouse(svgElement);
 
 const shapes = diagram.shapes;
 const relations = diagram.relations;
