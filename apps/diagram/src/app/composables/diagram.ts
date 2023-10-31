@@ -70,7 +70,7 @@ export const useDiagram = (diagramId: string) => {
 
   const removeShape = (id: ShapeId) => {
     const index = diagram.value?.shapes.findIndex((item) => item.id === id);
-    if (!!index && index >= 0) {
+    if (index !== undefined && index >= 0) {
       const relations = diagram.value?.relations.filter(
         (item) => item.from.id === id || item.to.id === id
       ) || [];
@@ -78,7 +78,7 @@ export const useDiagram = (diagramId: string) => {
         const relIndex = diagram.value?.relations.findIndex(
           (item) => item.id === rel.id
         );
-        if (!!relIndex && relIndex >= 0) {
+        if (relIndex !== undefined && relIndex >= 0) {
           diagram.value?.relations.splice(relIndex, 1);
         }
       });
@@ -89,7 +89,7 @@ export const useDiagram = (diagramId: string) => {
 
   const removeRelation = (id: RelationId) => {
     const index = diagram.value?.relations.findIndex((item) => item.id === id);
-    if (!!index && index >= 0) {
+    if (index !== undefined && index >= 0) {
       diagram.value?.relations.splice(index, 1);
       setDoc(doc(db, 'diagrams', diagramId), diagram.value);
     }
