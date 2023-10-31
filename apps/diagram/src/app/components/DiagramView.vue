@@ -86,6 +86,13 @@ const createShape = (type: ShapeType) => {
   }
 }
 
+const removeShape = () => {
+  const shapeId = getSelectedShapeId();
+  if (shapeId !== null) {
+    diagram.removeShape(shapeId);
+  }
+}
+
 const filterShape = (...types: string[]) =>
   (element: Element) => types.includes(element.parentElement?.getAttribute('data-type') || '');
 
@@ -110,6 +117,9 @@ const { registerHook } = useHotkeys(svgElement);
 // create different shapes
 registerHook('e', createShape(ShapeType.Rectangle));
 registerHook('q', createShape(ShapeType.Ellipse));
+
+// remove a shape
+registerHook('Delete', removeShape);
 
 // change color of shape
 registerHook('1', changeColor(Color.Red))
