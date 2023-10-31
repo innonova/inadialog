@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, provide, reactive, watch } from 'vue';
+import { onMounted, provide, reactive, ref, watch } from 'vue';
+import type { Ref } from 'vue';
 import { useCurrentUser, useFirebaseAuth, useIsCurrentUserLoaded } from 'vuefire';
 import { signInAnonymously } from 'firebase/auth';
 
@@ -7,6 +8,7 @@ import { useDiagram } from '../composables/diagram';
 import RelationComponent from './diagram/RelationComponent.vue';
 import ShapeComponent from './diagram/ShapeComponent.vue';
 import { useShapes } from '../composables/shapes';
+import { useHotkeys } from '../composables/hotkeys';
 
 const props = defineProps<{
   diagramId: string
@@ -46,6 +48,9 @@ const handleResize = () => {
   windowProps.height = parent.innerHeight;
 }
 
+const svgElement: Ref<SVGSVGElement | null> = ref(null);
+useHotkeys(svgElement);
+
 const shapes = diagram.shapes;
 const relations = diagram.relations;
 
@@ -57,6 +62,8 @@ onMounted(() => {
 <template>
     <svg
         id="diagram"
+        ref="svgElement"
+        tabindex="0"
         data-diagram-id="{{ diagram.id }}"
         :width="windowProps.width"
         :height="windowProps.height"
