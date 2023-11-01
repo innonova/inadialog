@@ -160,6 +160,7 @@ registerHook('5', changeColor(Color.White))
 registerHook('r', connectShapes);
 
 const { position: mouse } = useMouse(svgElement);
+provide('mouse', mouse);
 
 const shapes = diagram.shapes;
 const relations = diagram.relations;
