@@ -3,7 +3,8 @@ export type Point = {
   y: number
 }
 
-type Position = 'right' | 'left' | 'top' | 'bottom';
+const positions = <const>['right', 'top', 'bottom', 'left'];
+type Position = typeof positions[number];
 
 const add = (p: Point, q: Point): Point => ({
   x: p.x + q.x,
@@ -15,9 +16,23 @@ const sub = (p: Point, q: Point): Point => ({
   y: p.y - q.y
 })
 
-const position = (start: Point, end: Point): Position => {
-  return 'right';
+/*
+ * Produces tuple with the two diagonals going through point p
+ * and an inline with 1 resp. -1.
+ */
+const diagonals = (p: Point): [(x: number) => number, (x: number) => number] =>
+  [x => x - p.x + p.y, x => -x + p.x + p.y];
+
+/*
+ * Compare point p to the diagonals of point q and
+ * figure out on which side p resides.
+ */
+const compareToDiagonals = (p: Point, q: Point) => {
+  const isBelow = p.y <= diagonals(q)[0](p.x) ? 1 : 0;
+  const isAbove = p.y > diagonals(q)[1](p.x) ? 2 : 0;
+  return isBelow + isAbove;
 }
+const position = (start: Point, end: Point): Position => positions[compareToDiagonals(start, end)];
 
 const p = (point: Point): string => `${point.x + ', ' + point.y}`
 
