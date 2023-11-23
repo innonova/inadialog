@@ -6,7 +6,7 @@ import { signInAnonymously } from 'firebase/auth';
 
 import { useDiagram } from '../composables/diagram';
 import { useHotkeys } from '../composables/hotkeys';
-import { Relation } from '../composables/model/relation';
+import { Relation, RelationId } from '../composables/model/relation';
 import { Color, ShapeType } from '../composables/model/shape';
 import type { ShapeId } from '../composables/model/shape';
 import { useMouse } from '../composables/mouse';
@@ -89,41 +89,64 @@ const createShape = (type: ShapeType) => {
   }
 }
 
-const removeShape = () => {
-  const shapeId = getSelectedShapeId();
-  if (shapeId !== null) {
-    diagram.removeShape(shapeId);
+const removeShapeOrRelation = () => {
+  const shape = getSelectedShape();
+  if (!shape) {
+    return;
+  }
+  if (shape.type !== 'relation' && shape.id !== null) {
+    diagram.removeShape(shape.id);
+  }
+  if (shape.type === 'relation' && shape.id !== null) {
+    diagram.removeRelation(shape.id);
   }
 }
 
 const filterShape = (...types: string[]) =>
   (element: Element) => types.includes(element.parentElement?.getAttribute('data-type') || '');
 
-const getSelectedShapeId = (): ShapeId | null => {
+const getSelectedShape = (): { id: ShapeId, type: ShapeType }
+  | { id: RelationId, type: 'relation' }
+  | null => {
   const { x, y } = toValue(mouse);
   const element: Element | null = document.elementsFromPoint(x, y)
-    .find(filterShape('ellipse', 'rectangle')) || null;
-  return element?.parentElement ? +element.parentElement.id as ShapeId : null;
+    .find(filterShape('curve', 'ellipse', 'rectangle')) || null;
+  const parentElement = element?.parentElement;
+  if (!parentElement) {
+    return null;
+  }
+  const dataType = parentElement.getAttribute('data-type');
+  if (dataType === 'curve') {
+    return {
+      id: +parentElement.id as RelationId,
+      type: 'relation'
+    };
+  } else {
+    return {
+      id: +parentElement.id as ShapeId,
+      type: dataType as ShapeType
+    }
+  }
 }
 
 const changeColor = (color: Color) => {
   return () => {
-    const shapeId: ShapeId | null = getSelectedShapeId();
-    if (shapeId !== null) {
-      diagram.colorShape(shapeId, color);
+    const shape = getSelectedShape();
+    if (shape && shape.type !== 'relation' && shape.id !== null) {
+      diagram.colorShape(shape.id, color);
     }
   }
 }
 
 const transientPath: Ref<string | null> = ref(null);
 const connectShapes = () => {
-  const fromShapeId = getSelectedShapeId();
-  if (fromShapeId === null) {
+  const fromShape = getSelectedShape();
+  if (fromShape === null || fromShape.type === 'relation') {
     // no shape at mouse position found
     return;
   }
 
-  const start = toValue(shapeStore.getPosition(fromShapeId));
+  const start = toValue(shapeStore.getPosition(fromShape.id));
   const stopWatch = watch(mouse, () => {
     const end = toValue(mouse);
     const startPosition = position(start, end);
@@ -134,12 +157,12 @@ const connectShapes = () => {
   return () => {
     stopWatch();
     transientPath.value = null;
-    const toShapeId = getSelectedShapeId();
-    if (toShapeId === null) {
+    const toShape = getSelectedShape();
+    if (toShape === null || toShape.type === 'relation') {
       // no shape at mouse position found to connect to
       return;
     }
-    diagram.addRelation(fromShapeId, toShapeId);
+    diagram.addRelation(fromShape.id, toShape.id);
   }
 }
 
@@ -150,7 +173,7 @@ registerHook('e', createShape(ShapeType.Rectangle));
 registerHook('q', createShape(ShapeType.Ellipse));
 
 // remove a shape
-registerHook('Delete', removeShape);
+registerHook('Delete', removeShapeOrRelation);
 
 // change color of shape
 registerHook('1', changeColor(Color.Red))

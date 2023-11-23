@@ -134,7 +134,9 @@ const disconnect = (type: 'start' | 'end') => {
 </script>
 
 <template>
-    <g data-type="curve">
+    <g
+      :id="$props.id.toString()"
+      data-type="curve">
         <path
           :d="path(start.position, start.side.value, end.position, end.side.value)"></path>
         <path
