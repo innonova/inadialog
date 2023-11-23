@@ -23,6 +23,10 @@ const props = defineProps<{
   to: EndpointProps
 }>();
 
+defineEmits<{
+  (event: 'focus', id: number): void
+}>();
+
 interface Diagram {
   connect(id: RelationId, shapedId: ShapeId, type: 'start' | 'end'): void
 };
@@ -117,7 +121,12 @@ const disconnect = (type: 'start' | 'end') => {
 
 <template>
     <g data-type="curve">
-        <path :d="path(start, end)"></path>
+        <path
+          :d="path(start, end)"></path>
+        <path
+          class="handle"
+          :d="path(start, end)"
+          @click.stop="$emit('focus', $props.id)"></path>
         <RelationEndpointComponent
             :position="start"
             type="start"
@@ -132,10 +141,15 @@ const disconnect = (type: 'start' | 'end') => {
 </template>
 
 <style lang="postcss" scoped>
+g path.handle {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 10;
+  pointer-events: stroke;
+}
 g path {
-    fill: transparent;
-    stroke: #222;
-    stroke-width: 2;
-    pointer-events: stroke;
+  stroke: #222;
+  stroke-width: 2;
+  pointer-events: none;
 }
 </style>

@@ -48,7 +48,7 @@ g.endpoint circle:nth-child(2) {
   fill: transparent;
   transition: fill 0.4s;
 }
-g.endpoint:hover circle:nth-child(2) {
+g[data-type="curve"]:hover g.endpoint circle:nth-child(2) {
   fill: black;
 }
 </style>
