@@ -13,7 +13,7 @@ import { useMouse } from '../composables/mouse';
 import { useShapes } from '../composables/shapes';
 import RelationComponent from './diagram/RelationComponent.vue';
 import ShapeComponent from './diagram/ShapeComponent.vue';
-import { path } from '../composables/curve';
+import { path, position } from '../composables/curve';
 
 const props = defineProps<{
   diagramId: string
@@ -126,7 +126,9 @@ const connectShapes = () => {
   const start = toValue(shapeStore.getPosition(fromShapeId));
   const stopWatch = watch(mouse, () => {
     const end = toValue(mouse);
-    transientPath.value = path(start, end);
+    const startPosition = position(start, end);
+    const endPosition = position(end, start);
+    transientPath.value = path(start, startPosition, end, endPosition);
   });
 
   return () => {
