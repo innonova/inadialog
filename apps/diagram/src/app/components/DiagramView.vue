@@ -190,8 +190,7 @@ onMounted(() => {
                 v-bind="relation"/>
             <ShapeComponent
                 v-if="transientShape"
-                v-bind="transientShape"
-            />
+                v-bind="transientShape"/>
             <path
                 v-if="transientPath"
                 :d="transientPath">

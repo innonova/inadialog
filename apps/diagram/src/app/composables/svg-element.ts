@@ -86,8 +86,13 @@ export function useMovement(
     target.addEventListener('pointermove', move);
     origin = { x: event.clientX, y: event.clientY };
 
+    target.setPointerCapture(event.pointerId);
+
     target.addEventListener('pointerup', () => {
       event.stopPropagation();
+      if (target.hasPointerCapture(event.pointerId)) {
+        target.releasePointerCapture(event.pointerId);
+      }
       target.removeEventListener('pointermove', move);
     }, { once: true });
   }
