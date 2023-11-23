@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject, ref, reactive, onMounted, onUnmounted, watch } from 'vue';
-import type { Ref } from 'vue';
+import type { Ref, UnwrapNestedRefs } from 'vue';
 
 import { Color, ShapeId, ShapeType } from '../../composables/model/shape';
 import { useMovement } from '../../composables/svg-element';
@@ -24,7 +24,12 @@ interface Diagram {
   setShapeText(shapeId: ShapeId, text: string ): void
 }
 interface Shapes {
-  register(id: ShapeId, position: Ref<{ x: number, y: number }>): void
+  register(
+    id: ShapeId,
+    position: Ref<{ x: number, y: number }>,
+    size: UnwrapNestedRefs<{ height: number, width: number }>,
+    type: ShapeType
+  ): void
   unregister(id: ShapeId): void
 }
 const diagram = inject<Diagram>('diagram');
@@ -63,7 +68,7 @@ const commitMove = () => {
 };
 
 onMounted(() => {
-  shapes?.register(props.id, position);
+  shapes?.register(props.id, position, size, props.type);
 })
 
 onUnmounted(() => {

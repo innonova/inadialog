@@ -6,6 +6,7 @@ import { signInAnonymously } from 'firebase/auth';
 
 import { useDiagram } from '../composables/diagram';
 import { useHotkeys } from '../composables/hotkeys';
+import { Relation } from '../composables/model/relation';
 import { Color, ShapeType } from '../composables/model/shape';
 import type { ShapeId } from '../composables/model/shape';
 import { useMouse } from '../composables/mouse';
@@ -160,6 +161,7 @@ registerHook('5', changeColor(Color.White))
 registerHook('r', connectShapes);
 
 const { position: mouse } = useMouse(svgElement);
+provide('mouse', mouse);
 
 const shapes = diagram.shapes;
 const relations = diagram.relations;
@@ -167,6 +169,12 @@ const relations = diagram.relations;
 onMounted(() => {
   window.addEventListener('resize', handleResize);
 });
+
+const focusedRelation: Ref<number> = ref(-1); 
+const sorted = (relations: Relation[]) => {
+  return [...relations].sort((a: Relation, b: Relation) =>
+    a.id === focusedRelation.value ? 1 : b.id === focusedRelation.value ? -1 : 0)
+}
 </script>
 
 <template>
@@ -184,13 +192,13 @@ onMounted(() => {
                 :key="shape.id"
                 v-bind="shape"/>
             <RelationComponent
-                v-for="relation of relations"
+                v-for="relation of sorted(relations)"
                 :key="relation.id"
-                v-bind="relation"/>
+                v-bind="relation"
+                @focus="(id) => focusedRelation = id"/>
             <ShapeComponent
                 v-if="transientShape"
-                v-bind="transientShape"
-            />
+                v-bind="transientShape"/>
             <path
                 v-if="transientPath"
                 :d="transientPath">
