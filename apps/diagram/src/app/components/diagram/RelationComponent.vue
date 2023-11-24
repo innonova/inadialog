@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, watch } from 'vue';
+import { onMounted, reactive, ref, watch } from 'vue';
 import type { Ref, WatchStopHandle } from 'vue';
 
 import { path } from '../../composables/curve';
@@ -9,6 +9,7 @@ import { saveInject} from '../../composables/provide';
 
 import RelationEndpointComponent from './RelationEndpointComponent.vue';
 import { RelationId } from '../../composables/model/relation';
+import { DockingPoint } from '../../composables/shapes';
 
 type EndpointProps = {
   id: ShapeId,
@@ -33,23 +34,36 @@ interface Diagram {
 const diagram = saveInject<Diagram>('diagram');
 
 interface Shapes {
-  getNearestDockingPoint(id: ShapeId, point: Point): Ref<Point>
+  getNearestDockingPoint(id: ShapeId, point: Point): DockingPoint
   getPosition(id: ShapeId): Ref<Point>
 }
 const shapes = saveInject<Shapes>('shapes');
 
 const mouse = saveInject<Ref<Point>>('mouse');
 
-const start = reactive<Point>({ x: props.from.x, y: props.from.y });
-const end = reactive<Point>({ x: props.to.x, y: props.to.y });
+const start: {
+  side: Ref<string | null>,
+  position: Point
+} = {
+  side: ref(null),
+  position: reactive<Point>({ x: props.from.x, y: props.from.y })
+};
+const end: {
+  side: Ref<string | null>,
+  position: Point
+} = {
+  side: ref(null),
+  position: reactive<Point>({ x: props.to.x, y: props.to.y })
+};
 
 const connectEndpoint = (
-  shapeId: ShapeId, position: Point, target: Point
+  shapeId: ShapeId, endpoint: { side: Ref<string | null>, position: Point }, target: Point
 ): WatchStopHandle => {
   const dockingPoint = shapes.getNearestDockingPoint(shapeId, target);
-  return watch(dockingPoint, () => {
-    position.x = dockingPoint.value.x;
-    position.y = dockingPoint.value.y;
+  endpoint.side.value = dockingPoint.side;
+  return watch(dockingPoint.position, () => {
+    endpoint.position.x = dockingPoint.position.value.x;
+    endpoint.position.y = dockingPoint.position.value.y;
   }, { immediate: true });
 }
 
@@ -57,25 +71,25 @@ let watchStart: WatchStopHandle | null = null;
 let watchEnd: WatchStopHandle | null = null;
 
 onMounted(() => {
-  watchStart = connectEndpoint(props.from.id, start, end);
-  watchEnd = connectEndpoint(props.to.id, end, start);
+  watchStart = connectEndpoint(props.from.id, start, end.position);
+  watchEnd = connectEndpoint(props.to.id, end, start.position);
 
   watch(() => props.from, () => {
     if (watchStart) {
       watchStart();
     }
-    start.x = props.from.x;
-    start.y = props.from.y;
-    watchStart = connectEndpoint(props.from.id, start, end);
+    start.position.x = props.from.x;
+    start.position.y = props.from.y;
+    watchStart = connectEndpoint(props.from.id, start, end.position);
   });
 
   watch(() => props.to, () => {
     if (watchEnd) {
       watchEnd();
     }
-    end.x = props.to.x;
-    end.y = props.to.y;
-    watchEnd = connectEndpoint(props.to.id, end, start);
+    end.position.x = props.to.x;
+    end.position.y = props.to.y;
+    watchEnd = connectEndpoint(props.to.id, end, start.position);
   });
 });
 
@@ -89,12 +103,12 @@ const connect = (shapeId: ShapeId | null, type: 'start' | 'end') => {
       if (watchStart) {
         watchStart();
       }
-      watchStart = connectEndpoint(props.from.id, start, end);
+      watchStart = connectEndpoint(props.from.id, start, end.position);
     } else {
       if (watchEnd) {
         watchEnd();
       }
-      watchEnd = connectEndpoint(props.to.id, end, start);
+      watchEnd = connectEndpoint(props.to.id, end, start.position);
     }
   }
 }
@@ -104,36 +118,38 @@ const disconnect = (type: 'start' | 'end') => {
     watchStart();
     watchStart = watch(mouse ,() => {
       // map movement of endpoint to start object
-      start.x = mouse.value.x;
-      start.y = mouse.value.y;
+      start.position.x = mouse.value.x;
+      start.position.y = mouse.value.y;
     });
   }
   if (type === 'end' && watchEnd) {
     watchEnd();
     watchEnd = watch(mouse , () => {
       // map movement of endpoint to end object
-      end.x = mouse.value.x;
-      end.y = mouse.value.y;
+      end.position.x = mouse.value.x;
+      end.position.y = mouse.value.y;
     });
   }
 }
 </script>
 
 <template>
-    <g data-type="curve">
+    <g
+      :id="$props.id.toString()"
+      data-type="curve">
         <path
-          :d="path(start, end)"></path>
+          :d="path(start.position, start.side.value, end.position, end.side.value)"></path>
         <path
           class="handle"
-          :d="path(start, end)"
+          :d="path(start.position, start.side.value, end.position, end.side.value)"
           @click.stop="$emit('focus', $props.id)"></path>
         <RelationEndpointComponent
-            :position="start"
+            :position="start.position"
             type="start"
             @disconnect="disconnect"
             @connect="connect" />
         <RelationEndpointComponent
-            :position="end"
+            :position="end.position"
             type="end"
             @disconnect="disconnect"
             @connect="connect"/>

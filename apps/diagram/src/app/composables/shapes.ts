@@ -11,6 +11,8 @@ type Shape = {
   type: ShapeType
 };
 
+export type DockingPoint = { side: Side, position: Ref<Point> };
+
 const distance = (p: Point, q: Point): number => Math.hypot(q.x - p.x, q.y - p.y);
 
 export function useShapes() {
@@ -37,7 +39,7 @@ export function useShapes() {
     return shapes[id].position;
   }
 
-  const getNearestDockingPoint = (id: ShapeId, point: Point): Ref<Point> | null => {
+  const getNearestDockingPoint = (id: ShapeId, point: Point): DockingPoint | null => {
     let sides = shapes[id].dockingPoints;
     if (!sides) {
       const position = shapes[id].position;
@@ -60,7 +62,10 @@ export function useShapes() {
         nearestSide = side as Side;
       }
     }
-    return sides[nearestSide];
+    return {
+      side: nearestSide,
+      position: sides[nearestSide]
+    };
   }
 
   const sidesFor = (shape: Shape): { [key in Side]: Ref<{ x: number, y: number }>} => {

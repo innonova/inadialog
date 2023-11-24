@@ -32,11 +32,13 @@ const compareToDiagonals = (p: Point, q: Point) => {
   const isAbove = p.y > diagonals(q)[1](p.x) ? 2 : 0;
   return isBelow + isAbove;
 }
-const position = (start: Point, end: Point): Position => positions[compareToDiagonals(start, end)];
+export const position = (
+  start: Point, end: Point
+): Position => positions[compareToDiagonals(start, end)];
 
 const p = (point: Point): string => `${point.x + ', ' + point.y}`
 
-const controlPoint = (start: Point, end: Point) => {
+const controlPoint = (position: Position, start: Point, end: Point) => {
   const diff = sub(end, start);
 
   const len = Math.hypot(diff.x, diff.y);
@@ -49,7 +51,7 @@ const controlPoint = (start: Point, end: Point) => {
   const p1: Point = { x: diff.x / 3, y: diff.y / 3 };
 
   let norm: Point;
-  switch (position(start, end)) {
+  switch (position) {
   case 'right': {
     const s = Math.sign(diff.x);
     norm = { x: (2 * s * diff.y) / len, y: (-s * diff.x) / len };
@@ -73,8 +75,13 @@ const controlPoint = (start: Point, end: Point) => {
   }
   return add(start, add(p1, { x: norm.x * factor, y: norm.y * factor }));
 }
-export const path = (start: Point, end: Point): string => {
-  const cpStart = controlPoint(start, end);
-  const cpEnd = controlPoint(end, start); 
+export const path = (
+  start: Point,
+  startSide: string | null,
+  end: Point,
+  endSide: string | null
+): string => {
+  const cpStart = controlPoint(startSide as Position || 'left', start, end);
+  const cpEnd = controlPoint(endSide as Position || 'right', end, start);
   return `M ${p(start)} C ${p(cpStart)}, ${p(cpEnd)}, ${p(end)}`;
 };
