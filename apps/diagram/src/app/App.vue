@@ -12,6 +12,7 @@ html,
 body {
   padding: 0;
   margin: 0;
+  overflow: hidden;
   width: 100%;
   height: 100%;
   color: $text-main;

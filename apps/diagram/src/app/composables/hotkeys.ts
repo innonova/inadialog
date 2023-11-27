@@ -4,18 +4,22 @@ import type { Ref } from 'vue';
 type Hook = (event: KeyboardEvent) => Callback | void;
 type Callback = () => void;
 
+const combination = (event: KeyboardEvent) =>
+  `${event.ctrlKey ? 'Ctrl+' : ''}${event.shiftKey ? 'Shift+' : ''}${event.key}`;
+
 export const useHotkeys = (element: Ref<SVGSVGElement | null>) => {
 
   let keyDown = false;
   const callHook = (event: KeyboardEvent) => {
-    const hook = registeredHooks[event.key];
+    const key = combination(event);
+    const hook = registeredHooks[key];
     if (!keyDown && hook) {
       keyDown = true
-      callbacks[event.key] = hook(event) || null;
+      callbacks[key] = hook(event) || null;
     }
   };
   const executeCallback = (event: KeyboardEvent) => {
-    const callback = callbacks[event.key];
+    const callback = callbacks[combination(event)];
     if (!!keyDown && callback !== null) {
       callback();
     }

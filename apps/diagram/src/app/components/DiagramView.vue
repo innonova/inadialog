@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { onMounted, provide, reactive, ref, toValue, watch } from 'vue';
+import { computed, onMounted, provide, reactive, ref, toValue, watch } from 'vue';
 import type { Ref } from 'vue';
 import { useCurrentUser, useFirebaseAuth, useIsCurrentUserLoaded } from 'vuefire';
 import { signInAnonymously } from 'firebase/auth';
 
+import { useCanvas } from '../composables/canvas';
 import { useDiagram } from '../composables/diagram';
 import { useHotkeys } from '../composables/hotkeys';
 import { Relation, RelationId } from '../composables/model/relation';
@@ -166,6 +167,16 @@ const connectShapes = () => {
   }
 }
 
+const keyboardZoom = (zoom: 'in' | 'out') => (event: KeyboardEvent) => {
+  event.preventDefault();
+  const center = canvas.toCanvas({ x: windowProps.width / 2, y: windowProps.height / 2 });
+  if (zoom === 'in') {
+    canvas.zoomIn(center);
+  } else {
+    canvas.zoomOut(center);
+  }
+}
+
 const svgElement: Ref<SVGSVGElement | null> = ref(null);
 const { registerHook } = useHotkeys(svgElement);
 // create different shapes
@@ -185,14 +196,65 @@ registerHook('5', changeColor(Color.White))
 // connect shapes
 registerHook('r', connectShapes);
 
-const { position: mouse } = useMouse(svgElement);
+// hook to browser zoom
+registerHook('Ctrl+=', keyboardZoom('out'));
+registerHook('Ctrl+Shift++', keyboardZoom('out'));
+registerHook('Ctrl+-', keyboardZoom('in'));
+registerHook('Ctrl+Shift+_', keyboardZoom('in'));
+
+const {
+  position: mouse,
+  registerHook: registerMouse,
+  unregisterHook: unregisterMouse
+} = useMouse(svgElement);
 provide('mouse', mouse);
+
+const canvas = useCanvas();
+
+const zoomCanvas = (event: WheelEvent) => {
+  // prevent browser zoom
+  event.preventDefault();
+  // zoom canvas
+  if (event.deltaY > 0) {
+    canvas.zoomIn(mouse.value)
+  } else {
+    canvas.zoomOut(mouse.value)
+  }
+}
+
+const MIN_MOVE_DISTANCE = 5;
+const moveCanvas = (event: PointerEvent) => {
+  let distance = 0;
+
+  let origin = { x: event.x, y: event.y };
+  const move = (moveEvent: PointerEvent) => {
+    const diff = { x: moveEvent.x - origin.x, y: moveEvent.y - origin.y };
+    distance = distance + Math.hypot(diff.x, diff.y);
+    canvas.move(diff);
+    origin = { x: moveEvent.x, y: moveEvent.y };
+  }
+  registerMouse('pointermove', move);
+  registerMouse('pointerup', () => {
+    unregisterMouse('pointermove')
+  }, { once: true });
+  if (event.button === 2) {
+    registerMouse('contextmenu', (event: MouseEvent) => {
+      if (distance > MIN_MOVE_DISTANCE) {
+        event.preventDefault();
+      }
+    }, { once: true });
+  }
+}
 
 const shapes = diagram.shapes;
 const relations = diagram.relations;
 
 onMounted(() => {
   window.addEventListener('resize', handleResize);
+
+  // zoom & move canvas
+  registerMouse('wheel', zoomCanvas);
+  registerMouse('pointerdown', moveCanvas)
 });
 
 const focusedRelation: Ref<number> = ref(-1); 
@@ -200,6 +262,11 @@ const sorted = (relations: Relation[]) => {
   return [...relations].sort((a: Relation, b: Relation) =>
     a.id === focusedRelation.value ? 1 : b.id === focusedRelation.value ? -1 : 0)
 }
+
+const transform = computed(() => {
+  const { a, b, c, d, e, f } = canvas.transformM.value;
+  return `matrix(${a}, ${b}, ${c}, ${d}, ${e}, ${f})`;
+})
 </script>
 
 <template>
@@ -211,7 +278,7 @@ const sorted = (relations: Relation[]) => {
         :width="windowProps.width"
         :height="windowProps.height"
         xmlns="http://www.w3.org/2000/svg">
-        <g id="canvas">
+        <g id="canvas" :style="{ transform }">
             <ShapeComponent
                 v-for="shape of shapes"
                 :key="shape.id"
