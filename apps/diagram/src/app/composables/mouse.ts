@@ -11,6 +11,7 @@ interface EventMap {
   'contextmenu': MouseEvent
   'pointerdown': PointerEvent
   'pointermove': PointerEvent
+  'pointerout': PointerEvent
   'pointerup': PointerEvent
   'wheel': WheelEvent
 }

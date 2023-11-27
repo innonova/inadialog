@@ -212,8 +212,6 @@ provide('mouse', mouse);
 const canvas = useCanvas();
 
 const zoomCanvas = (event: WheelEvent) => {
-  // prevent browser zoom
-  event.preventDefault();
   // zoom canvas
   if (event.deltaY > 0) {
     canvas.zoomIn(mouse.value)
@@ -235,7 +233,10 @@ const moveCanvas = (event: PointerEvent) => {
   }
   registerMouse('pointermove', move);
   registerMouse('pointerup', () => {
-    unregisterMouse('pointermove')
+    unregisterMouse('pointermove');
+  }, { once: true });
+  registerMouse('pointerout', () => {
+    unregisterMouse('pointermove');
   }, { once: true });
   if (event.button === 2) {
     registerMouse('contextmenu', (event: MouseEvent) => {
@@ -253,8 +254,12 @@ onMounted(() => {
   window.addEventListener('resize', handleResize);
 
   // zoom & move canvas
-  registerMouse('wheel', zoomCanvas);
-  registerMouse('pointerdown', moveCanvas)
+  registerMouse('wheel', zoomCanvas, { passive: true });
+  registerMouse('wheel', (event: MouseEvent) => {
+    // prevent browser zoom
+    event.preventDefault();
+  });
+  registerMouse('pointerdown', moveCanvas);
 });
 
 const focusedRelation: Ref<number> = ref(-1); 
