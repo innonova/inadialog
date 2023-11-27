@@ -211,6 +211,30 @@ provide('mouse', mouse);
 
 const canvas = useCanvas();
 
+const useFade = (duration: number) => {
+  const value: Ref<boolean> = ref(false);
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+  return {
+    value: computed({
+      get: () => {
+        return value.value;
+      },
+      set: (newValue: boolean) => {
+        if (timeout) {
+          clearTimeout(timeout);
+        }
+        value.value = newValue;
+        timeout = setTimeout(() => {
+          value.value = false;
+          timeout = null;
+        }, duration);
+      }
+    })
+  };
+}
+
+const { value: fade } = useFade(2000);
+
 const zoomCanvas = (event: WheelEvent) => {
   // zoom canvas
   if (event.deltaY > 0) {
@@ -218,6 +242,7 @@ const zoomCanvas = (event: WheelEvent) => {
   } else {
     canvas.zoomOut(mouse.value)
   }
+  fade.value = true;
 }
 
 const MIN_MOVE_DISTANCE = 5;
@@ -272,6 +297,7 @@ const transform = computed(() => {
   const { a, b, c, d, e, f } = canvas.transformM.value;
   return `matrix(${a}, ${b}, ${c}, ${d}, ${e}, ${f})`;
 })
+const zoomLevel = computed(() => `${canvas.factor.value}x`)
 </script>
 
 <template>
@@ -302,13 +328,31 @@ const transform = computed(() => {
             </path>
         </g>
     </svg>
+    <div id="zoom-level" :class="{ visible: fade }">
+      <span>zoom</span><span>{{ zoomLevel }}</span>
+    </div>
 </template>
 
 <style lang="postcss">
 g path {
-    fill: transparent;
-    stroke: #222;
-    stroke-width: 2;
-    pointer-events: stroke;
+  fill: transparent;
+  stroke: #222;
+  stroke-width: 2;
+  pointer-events: stroke;
+}
+
+#zoom-level {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  opacity: 0;
+  transition: opacity 0.25s ease-in;
+}
+#zoom-level.visible {
+  opacity: 1;
+  transition: opacity 0.5s ease-out;
+}
+#zoom-level span {
+  margin: 4px;
 }
 </style>
