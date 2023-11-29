@@ -169,6 +169,7 @@ const { state, toggle } = useState();
             :ry="size.height * Math.SQRT1_2">
         </ellipse>
         <TextElement
+          v-if="state === 'edit' || $props.text.length > 0"
           ref="textElement"
           :value="$props.text"
           :edit="state === 'edit'"
