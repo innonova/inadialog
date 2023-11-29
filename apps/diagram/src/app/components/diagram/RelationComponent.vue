@@ -9,7 +9,7 @@ import { saveInject} from '../../composables/provide';
 
 import RelationEndpointComponent from './RelationEndpointComponent.vue';
 import { RelationId } from '../../composables/model/relation';
-import { DockingPoint } from '../../composables/shapes';
+import { DockingPoint, Side } from '../../composables/shapes';
 
 type EndpointProps = {
   id: ShapeId,
@@ -42,14 +42,14 @@ const shapes = saveInject<Shapes>('shapes');
 const mouse = saveInject<Ref<Point>>('mouse');
 
 const start: {
-  side: Ref<string | null>,
+  side: Ref<Side | null>,
   position: Point
 } = {
   side: ref(null),
   position: reactive<Point>({ x: props.from.x, y: props.from.y })
 };
 const end: {
-  side: Ref<string | null>,
+  side: Ref<Side | null>,
   position: Point
 } = {
   side: ref(null),
@@ -65,6 +65,22 @@ const connectEndpoint = (
     endpoint.position.x = dockingPoint.position.value.x;
     endpoint.position.y = dockingPoint.position.value.y;
   }, { immediate: true });
+}
+
+const rotation = (side: Side | null) => {
+  if (!side) {
+    return 0;
+  }
+  switch (side) {
+  case 'right':
+    return 0;
+  case 'bottom':
+    return 90;
+  case 'left':
+    return 180;
+  case 'top':
+    return 270;
+  }
 }
 
 let watchStart: WatchStopHandle | null = null;
@@ -146,11 +162,15 @@ const disconnect = (type: 'start' | 'end') => {
         <RelationEndpointComponent
             :position="start.position"
             type="start"
+            :directed="$props.from.style !== 'none'"
+            :rotation="rotation(start.side.value)"
             @disconnect="disconnect"
             @connect="connect" />
         <RelationEndpointComponent
             :position="end.position"
             type="end"
+            :directed="$props.to.style !== 'none'"
+            :rotation="rotation(end.side.value)"
             @disconnect="disconnect"
             @connect="connect"/>
     </g>
@@ -167,5 +187,8 @@ g path {
   stroke: #222;
   stroke-width: 2;
   pointer-events: none;
+}
+g:hover {
+  filter: drop-shadow(3px 3px 6px #222);
 }
 </style>

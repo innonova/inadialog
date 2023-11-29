@@ -7,7 +7,7 @@ import { signInAnonymously } from 'firebase/auth';
 import { useCanvas } from '../composables/canvas';
 import { useDiagram } from '../composables/diagram';
 import { useHotkeys } from '../composables/hotkeys';
-import { Relation, RelationId } from '../composables/model/relation';
+import { Direction, Relation, RelationId } from '../composables/model/relation';
 import { Color, ShapeType } from '../composables/model/shape';
 import type { ShapeId } from '../composables/model/shape';
 import { useMouse } from '../composables/mouse';
@@ -130,14 +130,20 @@ const getSelectedShape = (): { id: ShapeId, type: ShapeType }
   }
 }
 
-const changeColor = (color: Color) => {
+const styleShape = (color: Color, direction?: Direction) => {
   return () => {
     const shape = getSelectedShape();
-    if (shape && shape.type !== 'relation' && shape.id !== null) {
-      diagram.colorShape(shape.id, color);
+    if (!shape || !shape.id) {
+      return;
+    }
+    if (shape.type !== 'relation') {
+      diagram.colorShape(shape.id, color)
+    }
+    if (shape.type === 'relation' && !!direction) {
+      diagram.styleRelation(shape.id, direction);
     }
   }
-}
+};
 
 const transientPath: Ref<string | null> = ref(null);
 const connectShapes = () => {
@@ -187,11 +193,11 @@ registerHook('q', createShape(ShapeType.Ellipse));
 registerHook('Delete', removeShapeOrRelation);
 
 // change color of shape
-registerHook('1', changeColor(Color.Red))
-registerHook('2', changeColor(Color.Green))
-registerHook('3', changeColor(Color.Blue))
-registerHook('4', changeColor(Color.Yellow))
-registerHook('5', changeColor(Color.White))
+registerHook('1', styleShape(Color.Red, Direction.Forward))
+registerHook('2', styleShape(Color.Green, Direction.Backward))
+registerHook('3', styleShape(Color.Blue, Direction.BothWays))
+registerHook('4', styleShape(Color.Yellow, Direction.None))
+registerHook('5', styleShape(Color.White))
 
 // connect shapes
 registerHook('r', connectShapes);

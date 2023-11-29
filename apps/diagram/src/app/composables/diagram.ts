@@ -2,7 +2,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { computed } from 'vue';
 import { useFirestore, useDocument } from 'vuefire';
 
-import { ArrowStyle, Relation, RelationId } from './model/relation';
+import { ArrowStyle, Direction, Relation, RelationId } from './model/relation';
 import { Color, Shape, ShapeId, ShapeType } from './model/shape';
 
 type HasId = {
@@ -138,6 +138,31 @@ export const useDiagram = (diagramId: string) => {
     }
   };
 
+  const setStyles = (relation: Relation, fromStyle: ArrowStyle, toStyle: ArrowStyle) => {
+    relation.from.style = fromStyle;
+    relation.to.style = toStyle;
+  }
+
+  const styleRelation = (id: RelationId, direction: Direction) => {
+    const relation = diagram.value?.relations.find((item) => item.id === id);
+    if (relation) {
+      switch (direction) {
+      case Direction.Forward:
+        setStyles(relation, ArrowStyle.None, ArrowStyle.Simple);
+        break;
+      case Direction.Backward:
+        setStyles(relation, ArrowStyle.Simple, ArrowStyle.None);
+        break;
+      case Direction.BothWays:
+        setStyles(relation, ArrowStyle.Simple, ArrowStyle.Simple);
+        break;
+      case Direction.None:
+        setStyles(relation, ArrowStyle.None, ArrowStyle.None);
+      }
+      setDoc(doc(db, 'diagrams', diagramId), diagram.value);
+    }
+  }
+
   const connect = (id: RelationId, shapeId: ShapeId, type: 'start' | 'end') => {
     const shape = diagram.value?.shapes.find((item) => item.id === shapeId);
     const relation = diagram.value?.relations.find((item) => item.id === id);
@@ -179,6 +204,7 @@ export const useDiagram = (diagramId: string) => {
     moveShape,
     connect,
     colorShape,
+    styleRelation,
     setShapeText
   }
 };

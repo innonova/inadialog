@@ -3,7 +3,7 @@ import type { Ref, UnwrapNestedRefs } from 'vue';
 import type { ShapeId, ShapeType } from './model/shape';
 import type { Point } from './curve';
 
-type Side = 'left' | 'right' | 'top' | 'bottom';
+export type Side = 'left' | 'right' | 'top' | 'bottom';
 type Shape = {
   position: Ref<Point>
   size: UnwrapNestedRefs<{ height: number, width: number }>

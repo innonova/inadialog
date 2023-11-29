@@ -16,8 +16,15 @@ export const assertRelationId: AssertRelationId = (
   }
 };
 
+export enum Direction { 
+  None = 'none',
+  Forward = 'forward',
+  Backward = 'backward',
+  BothWays = 'both_ways'
+}
 export enum ArrowStyle {
   None = 'none',
+  Simple = 'simple'
 }
 
 export interface Relation {
