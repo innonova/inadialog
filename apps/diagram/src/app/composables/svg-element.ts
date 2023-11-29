@@ -74,10 +74,10 @@ export function useElementSize(elementRef: Ref<SVGElement | null>) {
 
 export function useMovement(
   elementRef: Ref<SVGGElement | null>,
-  initialPosition: MaybeRefOrGetter<{ x: number, y: number}>
+  initialPosition: MaybeRefOrGetter<{ x: number, y: number}>,
+  callback?: (diff: { x: number, y: number }) => void
 ) {
-  const position = ref(toValue(initialPosition));
-  const movement = ref<{ x: number, y: number }>({ x: 0, y: 0 });
+  const movement = { x: 0, y: 0 };
   let origin = toValue(initialPosition);
 
   const handleClick = (event: PointerEvent) => {
@@ -99,28 +99,13 @@ export function useMovement(
 
   const move = (event: PointerEvent) => {
     event.stopPropagation();
-    movement.value = {
-      x: (event.clientX - origin.x),
-      y: (event.clientY - origin.y)
-    }
-    position.value = {
-      x: position.value.x + movement.value.x,
-      y: position.value.y + movement.value.y
-    }
+    movement.x = event.clientX - origin.x;
+    movement.y = event.clientY - origin.y
     origin = { x: event.clientX, y: event.clientY };
+    if (callback) {
+      callback(toValue(movement));
+    }
   };
-
-  const update = ({ x, y }: { x: number, y: number}) => {
-    position.value = {
-      x: position.value.x + x,
-      y: position.value.y + y
-    };
-  };
-
-  watch(initialPosition, () => {
-    const newPosition = toValue(initialPosition);
-    position.value = newPosition;
-  });
 
   onMounted(() => {
     unref(elementRef)?.addEventListener('pointerdown', handleClick);
@@ -128,10 +113,4 @@ export function useMovement(
   onUnmounted(() => {
     unref(elementRef)?.removeEventListener('pointerdown', handleClick);
   });
-
-  return {
-    position,
-    movement,
-    update
-  }
 }

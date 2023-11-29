@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, ref, reactive, onMounted, onUnmounted, watch } from 'vue';
+import { computed, inject, ref, reactive, onMounted, onUnmounted, watch } from 'vue';
 import type { Ref, UnwrapNestedRefs } from 'vue';
 
 import { Color, ShapeId, ShapeType } from '../../composables/model/shape';
@@ -7,6 +7,7 @@ import { useMovement } from '../../composables/svg-element';
 import ResizeComponent from './ResizeComponent.vue';
 import type { Corner } from './ResizeComponent.vue';
 import TextElement from './TextElement.vue';
+import { Point } from '../../composables/curve';
 
 const props = defineProps<{
   id: ShapeId,
@@ -36,7 +37,17 @@ const diagram = inject<Diagram>('diagram');
 const shapes = inject<Shapes>('shapes');
 
 const groupRef = ref<SVGGElement | null>(null);
-const { position, update } = useMovement(groupRef, () => ({ x: props.x, y: props.y }));
+const position = ref<Point>({ x: props.x, y: props.y });
+useMovement(groupRef, () => ({ x: props.x, y: props.y }), (diff) => {
+  moved.value = true;
+  position.value.x = position.value.x + diff.x;
+  position.value.y = position.value.y + diff.y;
+});
+watch([() => props.x, () => props.y], () => {
+  position.value.x = props.x;
+  position.value.y = props.y;
+})
+const moved: Ref<boolean> = ref(false);
 
 const size = reactive({ height: props.height, width: props.width });
 watch(() => ({ height: props.height, width: props.width }), (value) => {
@@ -44,36 +55,76 @@ watch(() => ({ height: props.height, width: props.width }), (value) => {
   size.width = value.width;
 });
 
+const textElement: Ref<InstanceType<typeof TextElement> | null> = ref(null);
 const resize = (corner: Corner, diff: { x: number, y: number }) => {
-  size.width = size.width + diff.x;
-  size.height = size.height + diff.y;
+  const newDiff = { x: 0, y: 0 };
+  if (textElement.value && (size.width + diff.x > textElement.value.width)) {
+    size.width = size.width + diff.x;
+    newDiff.x = diff.x;
+    moved.value = true;
+  }
+  if (textElement.value && (size.height + diff.y > textElement.value.height)) {
+    size.height = size.height + diff.y;
+    newDiff.y = diff.y;
+    moved.value = true;
+  }
   switch (corner) {
   case 'ne':
-    update({ x: diff.x / 2, y: -diff.y / 2 });
+    position.value.x = position.value.x + newDiff.x / 2;
+    position.value.y = position.value.y - newDiff.y / 2;
     break;
   case 'se':
-    update({ x: diff.x / 2, y: diff.y / 2 });
+    position.value.x = position.value.x + newDiff.x / 2;
+    position.value.y = position.value.y + newDiff.y / 2;
     break;
   case 'sw':
-    update({ x: -diff.x / 2, y: diff.y / 2 });
+    position.value.x = position.value.x - newDiff.x / 2;
+    position.value.y = position.value.y + newDiff.y / 2;
     break;
   case 'nw':
-    update({ x: -diff.x / 2, y: -diff.y / 2 });
+    position.value.x = position.value.x - newDiff.x / 2;
+    position.value.y = position.value.y - newDiff.y / 2;
     break;
   }
-}
-
-const commitMove = () => {
-  diagram?.moveShape(props.id, position.value.x, position.value.y, size.height, size.width);
 };
+
+const handlePointerup = () => {
+  if (moved.value) {
+    diagram?.moveShape(props.id, position.value.x, position.value.y, size.height, size.width);
+    moved.value = false;
+  } else {
+    toggle();
+  }
+};
+
+const handleTextchange = (text: string) => {
+  diagram?.setShapeText(props.id, text);
+  toggle();
+}
 
 onMounted(() => {
   shapes?.register(props.id, position, size, props.type);
-})
+});
 
 onUnmounted(() => {
   shapes?.unregister(props.id);
-})
+});
+
+const useState = () => {
+  const states = ['idle', 'edit'] as const;
+  const state: Ref<number> = ref(0);
+
+  const toggle = () => {
+    state.value = (state.value + 1) % states.length;
+  };
+
+  return {
+    state: computed(() => states[state.value]),
+    toggle
+  };
+};
+
+const { state, toggle } = useState();
 </script>
 
 <template>
@@ -83,7 +134,7 @@ onUnmounted(() => {
         :class="$props.color"
         :data-type="$props.type"
         :transform="`translate(${position.x} ${position.y})`"
-        @pointerup="commitMove">
+        @pointerup="handlePointerup">
         <rect
             v-if="$props.type === ShapeType.Rectangle"
             rx="15"
@@ -98,9 +149,10 @@ onUnmounted(() => {
             :ry="size.height * Math.SQRT1_2">
         </ellipse>
         <TextElement
+          ref="textElement"
           :value="$props.text"
-          :edit="true"
-          @textchange="(text) => diagram?.setShapeText($props.id, text)"/>
+          :edit="state === 'edit'"
+          @textchange="handleTextchange"/>
         <ResizeComponent
           :height="size.height"
           :width="size.width"

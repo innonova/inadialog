@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed, ref } from 'vue';
+
 import { useMovement } from '../../composables/svg-element';
 
 const props = defineProps<{
@@ -16,20 +17,44 @@ const emit = defineEmits<{
 const size = ref({ height: props.height, width: props.width });
 
 const refNE = ref<SVGCircleElement | null>(null);
-const { position: positionNE, movement: diffNE } = useMovement(
-  refNE, () => ({ x: size.value.width / 2, y: -size.value.height / 2 }));
-
+const positionNE = computed(() => ({ x: props.width / 2, y: -props.height / 2 }));
+useMovement(
+  refNE,  
+  positionNE,
+  (diff) => {
+    updateSize('ne', { x: diff.x, y: -diff.y })
+  }
+);
+    
 const refSE = ref<SVGCircleElement | null>(null);
-const { position: positionSE, movement: diffSE } = useMovement(
-  refSE, () => ({ x: size.value.width / 2, y: size.value.height / 2 }));
+const positionSE = computed(() => ({ x: props.width / 2, y: props.height / 2 }));
+useMovement(
+  refSE,
+  positionSE,
+  (diff) => {
+    updateSize('se', { x: diff.x, y: diff.y });
+  }
+);
 
 const refSW = ref<SVGCircleElement | null>(null);
-const { position: positionSW, movement: diffSW } = useMovement(
-  refSW, () => ({ x: -size.value.width / 2, y: size.value.height / 2 }));
+const positionSW = computed(() => ({ x: -props.width / 2, y: props.height / 2 }));
+useMovement(
+  refSW,
+  positionSW,
+  (diff) => {
+    updateSize('sw', { x: -diff.x, y: diff.y });
+  }
+);
 
 const refNW = ref<SVGCircleElement | null>(null);
-const { position: positionNW, movement: diffNW } = useMovement(
-  refNW, () => ({ x: -size.value.width / 2, y: -size.value.height / 2 }));
+const positionNW = computed(() => ({ x: -props.width / 2, y: -props.height / 2 }));
+useMovement(
+  refNW,
+  positionNW,
+  (diff) => {
+    updateSize('nw', { x: -diff.x, y: -diff.y });
+  } 
+);
 
 const updateSize = (corner: Corner, { x, y }: { x: number, y: number}) => {
   const diff = { x: 0, y: 0 };
@@ -45,18 +70,6 @@ const updateSize = (corner: Corner, { x, y }: { x: number, y: number}) => {
   }
   emit('resize', corner, diff);
 }
-watch(diffNE, (diff) => {
-  updateSize('ne', { x: diff.x, y: -diff.y });
-})
-watch(diffSE, (diff) => {
-  updateSize('se', { x: diff.x, y: diff.y });
-})
-watch(diffSW, (diff) => {
-  updateSize('sw', { x: -diff.x, y: diff.y });
-})
-watch(diffNW, (diff) => {
-  updateSize('nw', { x: -diff.x, y: -diff.y });
-})
 </script>
 
 <template>

@@ -23,12 +23,22 @@ const font = computed(() => ({
   weight: 600
 }));
 
+const vFocus = {
+  mounted: (el: HTMLOrSVGElement) => {
+    el.focus();
+  }
+}
+
 const text = ref<string>(props.value);
 const lines = computed(() => text.value.split('\n'));
 
 const textElement = ref<SVGTextElement | null>(null);
 const { height, width } = useElementSize(textElement);
 
+defineExpose({
+  width,
+  height
+});
 watch(() => props.value, (value) => {
   text.value = value;
 });
@@ -52,7 +62,11 @@ watch(() => props.value, (value) => {
     :transform="`translate(${x - width / 2} ${y - height / 2})`">
     <textarea
       v-model="text"
+      v-focus
       :style="{ width: width + 'px', height: height + 4 + 'px' }"
+      @input.stop
+      @keydown.stop
+      @keyup.stop
       @blur.stop="$emit('textchange', text)">
     </textarea>
   </foreignObject>
