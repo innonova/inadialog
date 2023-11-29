@@ -14,7 +14,8 @@ const props = withDefaults(defineProps<Props>(), {
   y: 0
 });
 defineEmits<{
-  (event: 'textchange', text: string): void
+  (event: 'textchange'): void
+  (event: 'textblur', text: string): void
 }>();
 
 const font = computed(() => ({
@@ -64,10 +65,10 @@ watch(() => props.value, (value) => {
       v-model="text"
       v-focus
       :style="{ width: width + 'px', height: height + 4 + 'px' }"
-      @input.stop
+      @input.stop="() => $emit('textchange')"
       @keydown.stop
       @keyup.stop
-      @blur.stop="$emit('textchange', text)">
+      @blur.stop="$emit('textblur', text)">
     </textarea>
   </foreignObject>
 </template>

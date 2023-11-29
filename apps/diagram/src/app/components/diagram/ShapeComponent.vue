@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, ref, reactive, onMounted, onUnmounted, watch } from 'vue';
+import { computed, inject, onMounted, onUnmounted, ref, reactive, toValue, watch } from 'vue';
 import type { Ref, UnwrapNestedRefs } from 'vue';
 
 import { Color, ShapeId, ShapeType } from '../../composables/model/shape';
@@ -57,34 +57,37 @@ watch(() => ({ height: props.height, width: props.width }), (value) => {
 
 const textElement: Ref<InstanceType<typeof TextElement> | null> = ref(null);
 const resize = (corner: Corner, diff: { x: number, y: number }) => {
-  const newDiff = { x: 0, y: 0 };
-  if (textElement.value && (size.width + diff.x > textElement.value.width)) {
-    size.width = size.width + diff.x;
-    newDiff.x = diff.x;
-    moved.value = true;
-  }
-  if (textElement.value && (size.height + diff.y > textElement.value.height)) {
-    size.height = size.height + diff.y;
-    newDiff.y = diff.y;
-    moved.value = true;
-  }
-  switch (corner) {
-  case 'ne':
-    position.value.x = position.value.x + newDiff.x / 2;
-    position.value.y = position.value.y - newDiff.y / 2;
-    break;
-  case 'se':
-    position.value.x = position.value.x + newDiff.x / 2;
-    position.value.y = position.value.y + newDiff.y / 2;
-    break;
-  case 'sw':
-    position.value.x = position.value.x - newDiff.x / 2;
-    position.value.y = position.value.y + newDiff.y / 2;
-    break;
-  case 'nw':
-    position.value.x = position.value.x - newDiff.x / 2;
-    position.value.y = position.value.y - newDiff.y / 2;
-    break;
+  if (textElement.value) {
+    const newDiff = { x: 0, y: 0 };
+    const { width, height } = toValue(textElement.value);
+    if (size.width + diff.x > width + 16) {
+      size.width = size.width + diff.x;
+      newDiff.x = diff.x;
+      moved.value = true;
+    }
+    if (size.height + diff.y > height + 9) {
+      size.height = size.height + diff.y;
+      newDiff.y = diff.y;
+      moved.value = true;
+    }
+    switch (corner) {
+    case 'ne':
+      position.value.x = position.value.x + newDiff.x / 2;
+      position.value.y = position.value.y - newDiff.y / 2;
+      break;
+    case 'se':
+      position.value.x = position.value.x + newDiff.x / 2;
+      position.value.y = position.value.y + newDiff.y / 2;
+      break;
+    case 'sw':
+      position.value.x = position.value.x - newDiff.x / 2;
+      position.value.y = position.value.y + newDiff.y / 2;
+      break;
+    case 'nw':
+      position.value.x = position.value.x - newDiff.x / 2;
+      position.value.y = position.value.y - newDiff.y / 2;
+      break;
+    }
   }
 };
 
@@ -97,8 +100,25 @@ const handlePointerup = () => {
   }
 };
 
-const handleTextchange = (text: string) => {
+const handleTextchange = () => {
+  if (textElement.value) {
+    const { width, height } = toValue(textElement.value);
+    if (width + 16 > size.width) {
+      size.width = width + 16;
+      moved.value = true;
+    }
+    if (height + 9 > size.height) {
+      size.height = height + 9;
+      moved.value = true;
+    }
+  }
+}
+
+const handleTextblur = (text: string) => {
   diagram?.setShapeText(props.id, text);
+  if (moved.value) {
+    diagram?.moveShape(props.id, position.value.x, position.value.y, size.height, size.width);
+  }
   toggle();
 }
 
@@ -152,7 +172,8 @@ const { state, toggle } = useState();
           ref="textElement"
           :value="$props.text"
           :edit="state === 'edit'"
-          @textchange="handleTextchange"/>
+          @textchange="handleTextchange"
+          @textblur="handleTextblur"/>
         <ResizeComponent
           :height="size.height"
           :width="size.width"

@@ -14,8 +14,6 @@ const emit = defineEmits<{
   (event: 'resize', corner: Corner, diff: { x: number, y: number }): void
 }>();
 
-const size = ref({ height: props.height, width: props.width });
-
 const refNE = ref<SVGCircleElement | null>(null);
 const positionNE = computed(() => ({ x: props.width / 2, y: -props.height / 2 }));
 useMovement(
@@ -58,15 +56,11 @@ useMovement(
 
 const updateSize = (corner: Corner, { x, y }: { x: number, y: number}) => {
   const diff = { x: 0, y: 0 };
-  if (size.value.width + x > 25) {
+  if (props.width + x > 25) {
     diff.x = x;
   }
-  if (size.value.height + y > 25) {
+  if (props.height + y > 25) {
     diff.y = y;
-  }
-  size.value = {
-    height: size.value.height + diff.y,
-    width: size.value.width + diff.x
   }
   emit('resize', corner, diff);
 }
