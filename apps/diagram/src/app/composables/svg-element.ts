@@ -9,6 +9,7 @@ import {
   watch
 } from 'vue';
 import type { MaybeRefOrGetter, Ref } from 'vue';
+import { useCanvas } from './canvas';
 
 type ObserverSize = {
     readonly inlineSize: number
@@ -72,6 +73,8 @@ export function useElementSize(elementRef: Ref<SVGElement | null>) {
   }
 }
 
+const { factor } = useCanvas();
+
 export function useMovement(
   elementRef: Ref<SVGGElement | null>,
   initialPosition: MaybeRefOrGetter<{ x: number, y: number}>,
@@ -99,8 +102,8 @@ export function useMovement(
 
   const move = (event: PointerEvent) => {
     event.stopPropagation();
-    movement.x = event.clientX - origin.x;
-    movement.y = event.clientY - origin.y
+    movement.x = (event.clientX - origin.x) * factor.value;
+    movement.y = (event.clientY - origin.y) * factor.value;
     origin = { x: event.clientX, y: event.clientY };
     if (callback) {
       callback(toValue(movement));
