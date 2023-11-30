@@ -19,9 +19,10 @@ export interface Diagram {
   relations: Relation[];
 }
 
-export const createDiagram = async (id: string) => {
+export const createDiagram = async (id: string = crypto.randomUUID()): Promise<string> => {
   const db = useFirestore();
   await setDoc(doc(db, 'diagrams', id), { id, shapes: [], relations: [] });
+  return id;
 };
 
 export const useDiagram = (diagramId: string) => {

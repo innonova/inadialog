@@ -1,11 +1,45 @@
 <script setup lang="ts">
-import DiagramView from '../components/DiagramView.vue';
+import { ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 
-defineProps<{
+import DiagramView from '../components/DiagramView.vue';
+import MenuComponent from '../components/MenuComponent.vue';
+import { createDiagram } from '../composables/diagram';
+
+const props = defineProps<{
   diagramId: string
 }>();
+
+const router = useRouter();
+const newDiagramId = ref<string>(props.diagramId);
+
+watch (() => props.diagramId, async (diagramId) => {
+  newDiagramId.value = diagramId;
+})
+
+const newCanvas = async () => {
+  const diagramId = await createDiagram();
+  await router.push({
+    name: 'View',
+    params: {
+      diagramId
+    }
+  });
+}
+
+const clearCanvas = () => {
+  console.log('Clear Canvas');
+}
 </script>
 
 <template>
-    <DiagramView :diagramId="$props.diagramId"/>
+    <MenuComponent
+      @new="newCanvas"
+      @clear="clearCanvas"/>
+    <DiagramView
+      v-if="newDiagramId.length > 0"
+      :diagramId="newDiagramId"/>
+    <div v-else>
+      Load or create new diagram.
+    </div>
 </template>
