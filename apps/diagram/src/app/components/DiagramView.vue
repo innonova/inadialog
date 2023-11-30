@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, provide, reactive, ref, toValue, watch } from 'vue';
 import type { Ref } from 'vue';
-import { useCurrentUser, useFirebaseAuth, useIsCurrentUserLoaded } from 'vuefire';
-import { signInAnonymously } from 'firebase/auth';
 
 import { useCanvas } from '../composables/canvas';
 import { useDiagram } from '../composables/diagram';
@@ -20,26 +18,6 @@ const props = defineProps<{
   diagramId: string
 }>();
 
-const auth = useFirebaseAuth();
-const cu = useCurrentUser();
-const isLoaded = useIsCurrentUserLoaded();
-const checkLogin = () => {
-  if (cu.value === null && auth) {
-    console.log('login needed');
-    signInAnonymously(auth);
-  }
-};
-if (isLoaded.value) {
-  checkLogin();
-}
-watch(isLoaded, () => {
-  if (isLoaded.value) {
-    checkLogin();
-  }
-});
-watch(cu, () => {
-  console.log('user', cu.value?.toJSON());
-});
 const diagram = useDiagram(props.diagramId);
 provide('diagram', diagram);
 

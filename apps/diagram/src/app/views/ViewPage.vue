@@ -2,6 +2,9 @@
 import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
+import { useCurrentUser, useFirebaseAuth, useIsCurrentUserLoaded } from 'vuefire';
+import { signInAnonymously } from 'firebase/auth';
+
 import DiagramView from '../components/DiagramView.vue';
 import MenuComponent from '../components/MenuComponent.vue';
 import { createDiagram } from '../composables/diagram';
@@ -16,6 +19,27 @@ const newDiagramId = ref<string>(props.diagramId);
 watch (() => props.diagramId, async (diagramId) => {
   newDiagramId.value = diagramId;
 })
+
+const auth = useFirebaseAuth();
+const cu = useCurrentUser();
+const isLoaded = useIsCurrentUserLoaded();
+const checkLogin = () => {
+  if (cu.value === null && auth) {
+    console.log('login needed');
+    signInAnonymously(auth);
+  }
+};
+if (isLoaded.value) {
+  checkLogin();
+}
+watch(isLoaded, () => {
+  if (isLoaded.value) {
+    checkLogin();
+  }
+});
+watch(cu, () => {
+  console.log('user', cu.value?.toJSON());
+});
 
 const newCanvas = async () => {
   const diagramId = await createDiagram();
