@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, provide, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { useCurrentUser, useFirebaseAuth, useIsCurrentUserLoaded } from 'vuefire';
@@ -7,7 +7,7 @@ import { signInAnonymously } from 'firebase/auth';
 
 import DiagramView from '../components/DiagramView.vue';
 import MenuComponent from '../components/MenuComponent.vue';
-import { createDiagram } from '../composables/diagram';
+import { createDiagram, useDiagram } from '../composables/diagram';
 
 const props = defineProps<{
   diagramId: string
@@ -15,6 +15,8 @@ const props = defineProps<{
 
 const router = useRouter();
 const newDiagramId = ref<string>(props.diagramId);
+const diagram = useDiagram(newDiagramId);
+provide('diagram', diagram);
 
 watch (() => props.diagramId, async (diagramId) => {
   newDiagramId.value = diagramId;
@@ -52,7 +54,7 @@ const newCanvas = async () => {
 }
 
 const clearCanvas = () => {
-  console.log('Clear Canvas');
+  diagram.clear();
 }
 </script>
 
@@ -61,8 +63,7 @@ const clearCanvas = () => {
       @new="newCanvas"
       @clear="clearCanvas"/>
     <DiagramView
-      v-if="newDiagramId.length > 0"
-      :diagramId="newDiagramId"/>
+      v-if="newDiagramId.length > 0"/>
     <div v-else>
       Load or create new diagram.
     </div>

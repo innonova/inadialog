@@ -3,23 +3,19 @@ import { computed, onMounted, provide, reactive, ref, toValue, watch } from 'vue
 import type { Ref } from 'vue';
 
 import { useCanvas } from '../composables/canvas';
-import { useDiagram } from '../composables/diagram';
+import type { UseDiagram } from '../composables/diagram';
 import { useHotkeys } from '../composables/hotkeys';
 import { Direction, Relation, RelationId } from '../composables/model/relation';
 import { Color, ShapeType } from '../composables/model/shape';
 import type { ShapeId } from '../composables/model/shape';
 import { useMouse } from '../composables/mouse';
+import { saveInject } from '../composables/provide';
 import { useShapes } from '../composables/shapes';
 import RelationComponent from './diagram/RelationComponent.vue';
 import ShapeComponent from './diagram/ShapeComponent.vue';
 import { path, position } from '../composables/curve';
 
-const props = defineProps<{
-  diagramId: string
-}>();
-
-const diagram = useDiagram(props.diagramId);
-provide('diagram', diagram);
+const diagram = saveInject<UseDiagram>('diagram')
 
 const shapeStore = useShapes();
 provide('shapes', shapeStore);

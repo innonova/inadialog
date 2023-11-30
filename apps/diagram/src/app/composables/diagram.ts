@@ -1,5 +1,6 @@
 import { doc, setDoc } from 'firebase/firestore';
-import { computed } from 'vue';
+import { computed, toValue } from 'vue';
+import type { Ref } from 'vue';
 import { useFirestore, useDocument } from 'vuefire';
 
 import { ArrowStyle, Direction, Relation, RelationId } from './model/relation';
@@ -25,7 +26,7 @@ export const createDiagram = async (id: string = crypto.randomUUID()): Promise<s
   return id;
 };
 
-export const useDiagram = (diagramId: string) => {
+export const useDiagram = (diagramId: Ref<string>) => {
 
   const addShape = (type: ShapeType, x: number, y: number, color: Color = Color.White) => {
     const id = findMaxId(diagram.value ? diagram.value.shapes : []);
@@ -42,7 +43,7 @@ export const useDiagram = (diagramId: string) => {
       fontSize: 10,
     });
 
-    setDoc(doc(db, 'diagrams', diagramId), diagram.value);
+    setDoc(doc(db, 'diagrams', toValue(diagramId)), diagram.value);
   };
 
   const addRelation = (from: ShapeId, to: ShapeId) => {
@@ -72,7 +73,7 @@ export const useDiagram = (diagramId: string) => {
       text: '',
     });
 
-    setDoc(doc(db, 'diagrams', diagramId), diagram.value);
+    setDoc(doc(db, 'diagrams', toValue(diagramId)), diagram.value);
   };
 
   const removeShape = (id: ShapeId) => {
@@ -90,7 +91,7 @@ export const useDiagram = (diagramId: string) => {
         }
       });
       diagram.value?.shapes.splice(index, 1);
-      setDoc(doc(db, 'diagrams', diagramId), diagram.value);
+      setDoc(doc(db, 'diagrams', toValue(diagramId)), diagram.value);
     }
   };
 
@@ -98,7 +99,7 @@ export const useDiagram = (diagramId: string) => {
     const index = diagram.value?.relations.findIndex((item) => item.id === id);
     if (index !== undefined && index >= 0) {
       diagram.value?.relations.splice(index, 1);
-      setDoc(doc(db, 'diagrams', diagramId), diagram.value);
+      setDoc(doc(db, 'diagrams', toValue(diagramId)), diagram.value);
     }
   };
 
@@ -115,7 +116,7 @@ export const useDiagram = (diagramId: string) => {
       shape.y = y;
       shape.height = height ?? shape.height;
       shape.width = width ?? shape.width
-      setDoc(doc(db, 'diagrams', diagramId), diagram.value);
+      setDoc(doc(db, 'diagrams', toValue(diagramId)), diagram.value);
     }
     // update connected relations
     diagram.value?.relations
@@ -128,14 +129,14 @@ export const useDiagram = (diagramId: string) => {
           relation.to.x = x;
           relation.to.y = y;
         }});
-    setDoc(doc(db, 'diagrams', diagramId), diagram.value);
+    setDoc(doc(db, 'diagrams', toValue(diagramId)), diagram.value);
   };
 
   const colorShape = (id: ShapeId, color: Color) => {
     const shape = diagram.value?.shapes.find((item) => item.id === id);
     if (shape) {
       shape.color = color;
-      setDoc(doc(db, 'diagrams', diagramId), diagram.value);
+      setDoc(doc(db, 'diagrams', toValue(diagramId)), diagram.value);
     }
   };
 
@@ -160,7 +161,7 @@ export const useDiagram = (diagramId: string) => {
       case Direction.None:
         setStyles(relation, ArrowStyle.None, ArrowStyle.None);
       }
-      setDoc(doc(db, 'diagrams', diagramId), diagram.value);
+      setDoc(doc(db, 'diagrams', toValue(diagramId)), diagram.value);
     }
   }
 
@@ -180,19 +181,27 @@ export const useDiagram = (diagramId: string) => {
       relation.to.x = shape.x;
       relation.to.y = shape.y;
     }
-    setDoc(doc(db, 'diagrams', diagramId), diagram.value);
+    setDoc(doc(db, 'diagrams', toValue(diagramId)), diagram.value);
   }
 
   const setShapeText = (id: ShapeId, text: string) => {
     const shape = diagram.value?.shapes.find((item) => item.id === id);
     if (shape) {
       shape.text = text;
-      setDoc(doc(db, 'diagrams', diagramId), diagram.value);
+      setDoc(doc(db, 'diagrams', toValue(diagramId)), diagram.value);
     }
   };
 
+  const clear = () => {
+    if (diagram.value) {
+      diagram.value.relations = [];
+      diagram.value.shapes = [];
+      setDoc(doc(db, 'diagrams', toValue(diagramId)), diagram.value);
+    }
+  }
+
   const db = useFirestore();
-  const diagram = useDocument<Diagram>(computed(() => doc(db, 'diagrams', diagramId)));
+  const diagram = useDocument<Diagram>(computed(() => doc(db, 'diagrams', toValue(diagramId))));
 
   return {
     diagram: computed(() => diagram.value),
@@ -206,6 +215,9 @@ export const useDiagram = (diagramId: string) => {
     connect,
     colorShape,
     styleRelation,
-    setShapeText
+    setShapeText,
+    clear
   }
 };
+
+export type UseDiagram = ReturnType<typeof useDiagram>
