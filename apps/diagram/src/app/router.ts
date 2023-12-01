@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import ControlPage from './views/ControlPage.vue';
+import CursorPage from './views/CursorPage.vue';
 import HomePage from './views/HomePage.vue';
 import ViewPage from './views/ViewPage.vue';
 
@@ -39,6 +40,12 @@ const router = createRouter({
       name: 'Control',
       component: ControlPage,
       meta: { title: 'Control' },
+    },
+    {
+      path: '/cursor',
+      name: 'Cursor',
+      component: CursorPage,
+      meta: { title: 'Cursor' },
     },
     {
       path: '/view/:diagramId',
