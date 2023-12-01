@@ -4,7 +4,7 @@ import {
   useFirebaseAuth,
   useIsCurrentUserLoaded,
 } from 'vuefire';
-import { watch } from 'vue';
+import { ref, watch } from 'vue';
 import { signInAnonymously } from 'firebase/auth';
 import { useDiagram } from '../composables/diagram';
 import { ShapeType } from '../composables/model/shape';
@@ -34,7 +34,7 @@ watch(cu, () => {
   console.log('user', cu.value?.toJSON());
 });
 
-const diagram = useDiagram('d3b0f66b-2b74-4b95-84eb-ee9c2b131ffe');
+const diagram = useDiagram(ref('d3b0f66b-2b74-4b95-84eb-ee9c2b131ffe'));
 
 const testAddShape = () => {
   diagram.addShape(ShapeType.Rectangle, 100, 100);
