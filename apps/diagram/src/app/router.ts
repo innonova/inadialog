@@ -1,7 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router';
+
+import { getCurrentUser } from 'vuefire';
+
 import ControlPage from './views/ControlPage.vue';
 import CursorPage from './views/CursorPage.vue';
 import HomePage from './views/HomePage.vue';
+import RegistrationPage from './views/RegistrationPage.vue';
 import ViewPage from './views/ViewPage.vue';
 
 declare module 'vue-router' {
@@ -54,8 +58,21 @@ const router = createRouter({
       props: true,
       meta: { title: 'View' },
     },
+    {
+      path: '/registration',
+      name: 'Registration',
+      component: RegistrationPage,
+      meta: { title: 'Registration' }
+    }
   ],
 });
+
+router.beforeEach(async (to, _from) => {
+  const currentUser = await getCurrentUser();
+  if (currentUser && to.name === 'Registration') {
+    return { name: 'Home' }
+  }
+})
 
 router.afterEach((to, _from) => {
   const parent = to.matched.find((record) => record.meta.title);

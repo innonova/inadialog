@@ -3,14 +3,11 @@ import { computed, ref } from 'vue';
 
 import ErrorComponent from '../components/user/ErrorComponent.vue';
 import LoginForm from '../components/user/LoginForm.vue';
-import SignupForm from '../components/user/SignupForm.vue';
 import {
   AuthError,
-  createUserWithEmailAndPassword,
   getAuth,
   signInWithEmailAndPassword,
   signOut,
-  updateProfile,
   User
 } from 'firebase/auth';
 import { useCurrentUser } from 'vuefire';
@@ -25,30 +22,6 @@ const currentUser = ref<User | null>()
 auth.onAuthStateChanged((user) => {
   currentUser.value = user
 });
-
-const signUp = async (registration: { username: string, email: string, password: string }) => {
-  try {
-    const credentials = await createUserWithEmailAndPassword(
-      auth, registration.email, registration.password);
-    console.log(credentials.user);
-    if (auth.currentUser) {
-      updateProfile(auth.currentUser, { displayName: registration.username });
-    }
-  } catch (error) {
-    switch ((error as AuthError).code) {
-    case 'auth/email-already-in-use': {
-      signUpError.value = 'email-already-in-use';
-      break;
-    }
-    default: {
-      signUpError.value = 'unknown-sign-up-issue';
-      console.log((error as AuthError).code);
-    }
-    }
-  }
-}
-
-const signUpError = ref<string | null>(null);
 
 const logIn = async (login: { email: string, password: string }) => {
   try {
@@ -81,18 +54,8 @@ const logOut = async () => {
             <ErrorComponent id="login-error" :message="loginError"/>
             <LoginForm
                 @login="logIn"/>
-            <p> No account yet? <span @click="() => showLogin = false">
-                Sign up</span> instead.</p>
-          </div>
-        </template>
-        <template v-else>
-          <div id="signUp">
-            <h2>Sign Up</h2>
-            <ErrorComponent id="sign-up-error" :message="signUpError" />
-            <SignupForm
-              @sign-up="signUp"/>
-              <p>Already registered? <span @click="() => showLogin = true">
-                Login</span> instead.</p>
+            <p> No account yet? <router-link to='/registration'><span>
+                Sign up</span></router-link> instead.</p>
           </div>
         </template>
     </div>
@@ -111,11 +74,11 @@ button {
     width: fit-content;
     margin: auto;
 }
-#login, #signUp {
+#login {
   margin: 30px auto;
   max-width: 260px;
 }
-#login-error, #sign-up-error {
+#login-error {
   margin-bottom: 16px;
 }
 </style>
