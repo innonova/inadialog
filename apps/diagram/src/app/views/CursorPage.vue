@@ -1,17 +1,16 @@
 <script lang="ts" setup>
+import { Ref, computed, onMounted, ref, watch } from 'vue';
 import {
   useCurrentUser,
-  useDatabase,
-  useDatabaseObject,
   useFirebaseAuth,
   useIsCurrentUserLoaded,
 } from 'vuefire';
-import { ref as dbRef, set as dbSet } from 'firebase/database';
-import { Ref, computed, onMounted, ref, watch } from 'vue';
 import { signInAnonymously } from 'firebase/auth';
-const db = useDatabase();
+
+import { useCursor } from '../composables/cursor';
+
 const diagram: Ref<SVGSVGElement | null> = ref(null);
-const pointer: Ref<SVGSVGElement | null> = ref(null);
+//const pointer: Ref<SVGSVGElement | null> = ref(null);
 
 const auth = useFirebaseAuth();
 const cu = useCurrentUser();
@@ -38,27 +37,16 @@ watch(cu, () => {
   console.log('user', cu.value?.toJSON());
 });
 
-// const test = async () => {
-//   // const citiesCol = collection(db, 'todos');
-//   // const citySnapshot = await getDocs(citiesCol);
-//   console.log(citySnapshot);
-// };
-// const starCountRef = dbRef(db, 'hhh');
-// onValue(starCountRef, (snapshot) => {
-//   const data = snapshot.val();
-//   console.log(data);
-// });
+const {
+  addCursor,
+  updatePosition,
+  cursor,
+  others
+} = useCursor(ref('d3b0f66b-2b74-4b95-84eb-ee9c2b131ffe'));
+addCursor();
 
-// const todos = useCollection(collection(db, 'todos'));
-// const a = computed(() => console.log(todos));
-// test();
-const dbobj = useDatabaseObject<{ x: number; y: number }>(dbRef(db, 'hhh'));
+const dbobj = cursor;
 const a = computed(() => console.log('test', diagram.value));
-
-const left: Ref<string> = computed(() =>
-  dbobj.value ? `${dbobj.value?.x}px` : left.value
-);
-const top: Ref<string> = computed(() => `${dbobj.value?.y}px`);
 
 const increment = () => {
   // console.log('test', dbobj.value?.fff);
@@ -70,7 +58,7 @@ const increment = () => {
 };
 
 let lastUpdate = performance.now();
-let needsUpdate = false;
+const needsUpdate = ref(false);
 let lastPos = { x: 0, y: 0 };
 
 const update = (event: PointerEvent) => {
@@ -78,16 +66,17 @@ const update = (event: PointerEvent) => {
     x: Math.floor(event.offsetX),
     y: Math.floor(event.offsetY),
   };
-  needsUpdate = true;
+  needsUpdate.value = true;
   if (performance.now() - lastUpdate > 20) {
     lastUpdate = performance.now();
-    needsUpdate = false;
+    needsUpdate.value = false;
     // console.log({ x: event.clientX, y: event.clientY });
-    if (dbobj.value) {
-      dbSet(dbRef(db, 'hhh'), lastPos);
-    }
+    //if (dbobj.value) {
+    //  dbSet(dbRef(db, 'hhh'), lastPos);
+    //}
+    updatePosition(lastPos);
   } else {
-    needsUpdate = true;
+    needsUpdate.value = true;
   }
 };
 
@@ -104,47 +93,83 @@ const update = (event: PointerEvent) => {
 //   }
 // }, 10);
 
-Object.entries({});
-
 onMounted(() => {
   console.log('onMounted', diagram.value);
   diagram.value?.addEventListener('pointermove', update);
 });
 
-// const { position, registerHook: registerMouseHook } = useMouse(diagram);
 </script>
 
 <template>
-  <div>{{ dbobj?.x }}, {{ dbobj?.y }}</div>
-  <div>{{ a }}</div>
-  <!-- <ul>
-    <li v-for="todo in todos" :key="todo.id">
-      <span>{{ todo.text }}</span>
-    </li>
-  </ul> -->
-  <button @click="increment()">Inc</button>
-  <div id="diagram" ref="diagram">
-    <div id="pointer" ref="pointer"></div>
+  <div class="container">
+    <div>
+      Position:
+      <label>x:</label>{{ dbobj?.x }}
+      <label>y:</label>{{ dbobj?.y }}
+    </div>
+    <div>
+      <label>counter:</label>{{ a }}
+    </div>
+    <div>
+      other positions:
+      <ul>
+        <li
+          v-for="pointer of others"
+          :key="pointer.id"
+        >
+          <label>id:</label>{{ pointer.id }}
+          <label>x:</label>{{ pointer.x }}
+          <label>y:</label>{{ pointer.y }}
+        </li>
+      </ul>
+    </div>
+    <button @click="increment()">Inc</button>
+    <div id="diagram" ref="diagram">
+      <svg
+        width="200"
+        height="200"
+        xmlns="http://www.w3.org/2000/svg">
+        <path
+          v-for="pointer of others"
+          :id="pointer.id"
+          :key="pointer.id"
+          :transform="`translate(${pointer.x} ${pointer.y})`"
+          fill="white"
+          stroke="1px white"
+          d="M -12,-12 l 12,24 l 3,-5 l 5,-3 z" />
+      </svg>
+    </div>
   </div>
 </template>
 
 <style lang="postcss" scoped>
 @import '../../assets/css/global.css';
+
+div.container {
+  margin: 16px;
+}
+
+div.container > div {
+  margin: 8px;
+}
+
 #diagram {
   position: relative;
   width: 200px;
   height: 200px;
   background-color: red;
+  cursor: none;
 }
 
-#pointer {
+.pointer {
   position: absolute;
   width: 10px;
   height: 10px;
   background-color: white;
-  left: v-bind('left');
-  top: v-bind('top');
   pointer-events: none;
-  /* transition: left 0.1s, top 0.1s; */
+}
+
+ul li:not(:last-child) {
+  margin-bottom: 4px;
 }
 </style>
