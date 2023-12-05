@@ -1,8 +1,8 @@
-import { computed } from 'vue';
+import { computed, reactive } from 'vue';
 import type { Ref } from 'vue';
 
 import { ref as dbRef, set as dbSet, runTransaction } from 'firebase/database';
-import { useCollection, useDatabase, useDatabaseList, useDatabaseObject } from 'vuefire'
+import { useDatabase, useDatabaseList, useDatabaseObject } from 'vuefire'
 
 type CursorId = string;
 type Position = { x: number, y: number };
@@ -16,6 +16,11 @@ export const useCursor = (diagramId: Ref<string>) => {
   const diagramRef = computed(() => dbRef(db, `diagrams/${diagramId.value}`));
 
   let init = false;
+  const cursor = reactive<Cursor>({
+    color: 'blue',
+    x: 0,
+    y: 0
+  });
 
   const addCursor = async () => {
     if (init) {
@@ -28,7 +33,7 @@ export const useCursor = (diagramId: Ref<string>) => {
         if (!data) {
           data = {};
         }
-        data[cursorId] = { color: 'blue', x: 0, y: 0 };
+        data[cursorId] = cursor;
         return data;
       });
     } catch (error) {
@@ -49,10 +54,13 @@ export const useCursor = (diagramId: Ref<string>) => {
   }
 
   const updatePosition = (position: Position) => {
-    const cursor = {
-      color: 'blue',
-      ...position
-    }
+    cursor.x = position.x;
+    cursor.y = position.y;
+    dbSet(dbRef(db, `diagrams/${diagramId.value}/${cursorId}`), cursor);
+  }
+
+  const changeColor = (color: string) => {
+    cursor.color = color;
     dbSet(dbRef(db, `diagrams/${diagramId.value}/${cursorId}`), cursor);
   }
 
@@ -60,6 +68,7 @@ export const useCursor = (diagramId: Ref<string>) => {
     addCursor,
     removeCursor,
     updatePosition,
+    changeColor,
     cursor: computed(() => useDatabaseObject<Cursor>(dbRef(
       db, `diagrams/${diagramId.value}/${cursorId}`)).value),
     others: computed(() => useDatabaseList<Cursor>(dbRef(

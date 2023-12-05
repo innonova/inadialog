@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { Ref, computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
+import type { Ref } from 'vue';
 import {
   useCurrentUser,
   useFirebaseAuth,
@@ -39,10 +40,20 @@ watch(cu, () => {
 const {
   addCursor,
   updatePosition,
+  changeColor,
   cursor,
   others
 } = useCursor(ref('d3b0f66b-2b74-4b95-84eb-ee9c2b131ffe'));
 addCursor();
+const cursorColor = computed({
+  get: () => cursor.value?.color,
+  set: (value: string | undefined) => {
+    if (value) {
+      changeColor(value);
+    }
+  }
+})
+const cursorColors = ['black', 'blue', 'green', 'white', 'yellow'];
 
 const dbobj = cursor;
 const a = computed(() => console.log('test', diagram.value));
@@ -116,7 +127,7 @@ onMounted(() => {
           v-for="pointer of others"
           :key="pointer.id"
         >
-          <label>id:</label>{{ pointer.id }}
+          <label>color:</label>{{ pointer.color }}
           <label>x:</label>{{ pointer.x }}
           <label>y:</label>{{ pointer.y }}
         </li>
@@ -133,10 +144,15 @@ onMounted(() => {
           :id="pointer.id"
           :key="pointer.id"
           :transform="`translate(${pointer.x + 12} ${pointer.y + 12})`"
-          fill="white"
+          :fill="pointer.color"
           stroke="1px white"
           d="M -12,-12 l 12,24 l 3,-5 l 5,-3 z" />
       </svg>
+      <label>Cursor color:</label><select v-model="cursorColor">
+        <option
+          v-for="color of cursorColors"
+          :key="color">{{ color }}</option>
+      </select>
     </div>
   </div>
 </template>
@@ -160,15 +176,15 @@ div.container > div {
   cursor: none;
 }
 
-.pointer {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background-color: white;
-  pointer-events: none;
+ul {
+  list-style: none;
 }
 
 ul li:not(:last-child) {
   margin-bottom: 4px;
+}
+
+label {
+  margin-right: 4px;
 }
 </style>
