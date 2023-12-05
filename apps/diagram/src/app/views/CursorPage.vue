@@ -10,7 +10,6 @@ import { signInAnonymously } from 'firebase/auth';
 import { useCursor } from '../composables/cursor';
 
 const diagram: Ref<SVGSVGElement | null> = ref(null);
-//const pointer: Ref<SVGSVGElement | null> = ref(null);
 
 const auth = useFirebaseAuth();
 const cu = useCurrentUser();
@@ -133,7 +132,7 @@ onMounted(() => {
           v-for="pointer of others"
           :id="pointer.id"
           :key="pointer.id"
-          :transform="`translate(${pointer.x} ${pointer.y})`"
+          :transform="`translate(${pointer.x + 12} ${pointer.y + 12})`"
           fill="white"
           stroke="1px white"
           d="M -12,-12 l 12,24 l 3,-5 l 5,-3 z" />
