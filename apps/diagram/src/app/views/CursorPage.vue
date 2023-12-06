@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import type { Ref } from 'vue';
 import {
   useCurrentUser,
@@ -39,12 +39,12 @@ watch(cu, () => {
 
 const {
   addCursor,
+  removeCursor,
   updatePosition,
   changeColor,
   cursor,
   others
 } = useCursor(ref('d3b0f66b-2b74-4b95-84eb-ee9c2b131ffe'));
-addCursor();
 const cursorColor = computed({
   get: () => cursor.value?.color,
   set: (value: string | undefined) => {
@@ -106,7 +106,14 @@ const update = (event: PointerEvent) => {
 onMounted(() => {
   console.log('onMounted', diagram.value);
   diagram.value?.addEventListener('pointermove', update);
+
+  addCursor();
 });
+
+onUnmounted(() => {
+  console.log('onUnmounted');
+  removeCursor();
+})
 
 </script>
 
@@ -173,7 +180,6 @@ div.container > div {
   width: 200px;
   height: 200px;
   background-color: red;
-  cursor: none;
 }
 
 ul {

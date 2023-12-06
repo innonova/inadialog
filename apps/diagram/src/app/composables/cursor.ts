@@ -72,6 +72,6 @@ export const useCursor = (diagramId: Ref<string>) => {
     cursor: computed(() => useDatabaseObject<Cursor>(dbRef(
       db, `diagrams/${diagramId.value}/${cursorId}`)).value),
     others: computed(() => useDatabaseList<Cursor>(dbRef(
-      db, `diagrams/${diagramId.value}`)).value)
+      db, `diagrams/${diagramId.value}`)).value.filter(({ id }) => id !== cursorId))
   }
 }
