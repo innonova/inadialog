@@ -3,6 +3,8 @@ import { computed, onMounted, provide, reactive, ref, toValue, watch } from 'vue
 import type { Ref } from 'vue';
 
 import { useCanvas } from '../composables/canvas';
+import { useCursor } from '../composables/cursor';
+import { path, position } from '../composables/curve';
 import type { UseDiagram } from '../composables/diagram';
 import { useHotkeys } from '../composables/hotkeys';
 import { Direction, Relation, RelationId } from '../composables/model/relation';
@@ -11,11 +13,13 @@ import type { ShapeId } from '../composables/model/shape';
 import { useMouse } from '../composables/mouse';
 import { saveInject } from '../composables/provide';
 import { useShapes } from '../composables/shapes';
+
+import CursorsComponent from './CursorsComponent.vue';
 import RelationComponent from './diagram/RelationComponent.vue';
 import ShapeComponent from './diagram/ShapeComponent.vue';
-import { path, position } from '../composables/curve';
 
 const diagram = saveInject<UseDiagram>('diagram')
+const diagramId = computed(() => diagram.diagram.value?.id)
 
 const shapeStore = useShapes();
 provide('shapes', shapeStore);
@@ -190,6 +194,19 @@ const {
 } = useMouse(svgElement);
 provide('mouse', mouse);
 
+const {
+  updatePosition,
+  others: otherCursors
+} = useCursor(diagramId);
+const lastUpdate = ref(performance.now());
+watch(mouse, (position) => {
+  const now = performance.now();
+  if (now - lastUpdate.value > 20) {
+    updatePosition(canvas.toCanvas(position));
+    lastUpdate.value = now;
+  }
+});
+
 const canvas = useCanvas();
 
 const useFade = (duration: number) => {
@@ -307,6 +324,10 @@ const zoomLevel = computed(() => `${canvas.factor.value}x`)
                 v-if="transientPath"
                 :d="transientPath">
             </path>
+        </g>
+        <g id="cursors" :style="{ transform }">
+          <CursorsComponent
+            :cursors="otherCursors" />
         </g>
     </svg>
     <div id="zoom-level" :class="{ visible: fade }">
