@@ -38,7 +38,6 @@ watch(cu, () => {
 });
 
 const {
-  addCursor,
   removeCursor,
   updatePosition,
   changeColor,
@@ -106,8 +105,7 @@ const update = (event: PointerEvent) => {
 onMounted(() => {
   console.log('onMounted', diagram.value);
   diagram.value?.addEventListener('pointermove', update);
-
-  addCursor();
+  addEventListener('beforeunload', removeCursor);
 });
 
 onUnmounted(() => {

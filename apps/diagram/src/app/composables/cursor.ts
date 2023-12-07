@@ -1,19 +1,21 @@
-import { computed, reactive } from 'vue';
-import type { Ref } from 'vue';
+import { computed, onMounted, reactive, ref, toValue, watch } from 'vue';
+import type { MaybeRefOrGetter } from 'vue';
 
 import { ref as dbRef, set as dbSet, runTransaction } from 'firebase/database';
 import { useDatabase, useDatabaseList, useDatabaseObject } from 'vuefire'
 
 type CursorId = string;
 type Position = { x: number, y: number };
-type Cursor = { color: string } & Position;
+export type Cursor = { color: string } & Position;
 type Cursors = { [key: CursorId]: Cursor }
 
 const cursorId = crypto.randomUUID();
 
-export const useCursor = (diagramId: Ref<string>) => {
+export const useCursor = (diagramId: MaybeRefOrGetter<string | undefined>) => {
   const db = useDatabase();
-  const diagramRef = computed(() => dbRef(db, `diagrams/${diagramId.value}`));
+  const diagramRef = computed(() => dbRef(db, `diagrams/${toValue(diagramId)}`));
+
+  const previousDiagramId = ref<string | undefined>(undefined);
 
   let init = false;
   const cursor = reactive<Cursor>({
@@ -56,13 +58,28 @@ export const useCursor = (diagramId: Ref<string>) => {
   const updatePosition = (position: Position) => {
     cursor.x = position.x;
     cursor.y = position.y;
-    dbSet(dbRef(db, `diagrams/${diagramId.value}/${cursorId}`), cursor);
+    dbSet(dbRef(db, `diagrams/${toValue(diagramId)}/${cursorId}`), cursor);
   }
 
   const changeColor = (color: string) => {
     cursor.color = color;
-    dbSet(dbRef(db, `diagrams/${diagramId.value}/${cursorId}`), cursor);
+    dbSet(dbRef(db, `diagrams/${toValue(diagramId)}/${cursorId}`), cursor);
   }
+
+  watch(() => toValue(diagramId), (id) => {
+    if (id) {
+      console.log('id is: ', id);
+      if (previousDiagramId.value) {
+        removeCursor();
+      }
+      previousDiagramId.value = toValue(diagramId);
+      addCursor();
+    }
+  }, { immediate: true });
+
+  onMounted(() => {
+    addEventListener('beforeunload', removeCursor);
+  });
 
   return {
     addCursor,
@@ -70,8 +87,8 @@ export const useCursor = (diagramId: Ref<string>) => {
     updatePosition,
     changeColor,
     cursor: computed(() => useDatabaseObject<Cursor>(dbRef(
-      db, `diagrams/${diagramId.value}/${cursorId}`)).value),
+      db, `diagrams/${toValue(diagramId)}/${cursorId}`)).value),
     others: computed(() => useDatabaseList<Cursor>(dbRef(
-      db, `diagrams/${diagramId.value}`)).value.filter(({ id }) => id !== cursorId))
+      db, `diagrams/${toValue(diagramId)}`)).value.filter(({ id }) => id !== cursorId))
   }
 }
