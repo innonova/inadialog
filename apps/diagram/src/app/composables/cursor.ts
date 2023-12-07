@@ -56,19 +56,26 @@ export const useCursor = (diagramId: MaybeRefOrGetter<string | undefined>) => {
   }
 
   const updatePosition = (position: Position) => {
+    const id = toValue(diagramId);
+    if (!id) {
+      return;
+    }
     cursor.x = position.x;
     cursor.y = position.y;
-    dbSet(dbRef(db, `diagrams/${toValue(diagramId)}/${cursorId}`), cursor);
+    dbSet(dbRef(db, `diagrams/${id}/${cursorId}`), cursor);
   }
 
   const changeColor = (color: string) => {
+    const id = toValue(diagramId);
+    if (!id) {
+      return;
+    }
     cursor.color = color;
-    dbSet(dbRef(db, `diagrams/${toValue(diagramId)}/${cursorId}`), cursor);
+    dbSet(dbRef(db, `diagrams/${id}/${cursorId}`), cursor);
   }
 
   watch(() => toValue(diagramId), (id) => {
     if (id) {
-      console.log('id is: ', id);
       if (previousDiagramId.value) {
         removeCursor();
       }
