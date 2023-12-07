@@ -42,7 +42,8 @@ type ShapeProperties = {
 const transientShape: Ref<ShapeProperties | null> = ref(null);
 const createShape = (type: ShapeType) => {
   return () => {
-    const stopWatch = watch(mouse, ({ x, y }) => {
+    const stopWatch = watch(mouse, (position) => {
+      const { x, y } = canvas.toCanvas(position);
       transientShape.value = {
         id: 999999 as ShapeId,
         type,
@@ -58,7 +59,7 @@ const createShape = (type: ShapeType) => {
     return () => {
       stopWatch();
       transientShape.value = null;
-      const { x, y } = toValue(mouse); 
+      const { x, y } = canvas.toCanvas(toValue(mouse));
       diagram.addShape(type, x, y, Color.White);
     }
   }
@@ -129,7 +130,7 @@ const connectShapes = () => {
 
   const start = toValue(shapeStore.getPosition(fromShape.id));
   const stopWatch = watch(mouse, () => {
-    const end = toValue(mouse);
+    const end = canvas.toCanvas(toValue(mouse));
     const startPosition = position(start, end);
     const endPosition = position(end, start);
     transientPath.value = path(start, startPosition, end, endPosition);
