@@ -1,14 +1,36 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 
 defineEmits<{
     (event: 'new'): void,
-    (event: 'clear'): void
+    (event: 'clear'): void,
+    (event: 'changeCursorColor', color: CursorColor): void
 }>();
+
+enum CursorColor {
+    Black = 'black',
+    Blue = 'blue',
+    Green = 'green',
+    Purple = 'purple',
+    Red = 'red',
+    Yellow = 'yellow',
+}
+const ComplementaryColor = [
+  'white',
+  'white',
+  'white',
+  'white',
+  'black'
+]
+const complementaryColor = (color: CursorColor) =>
+  ComplementaryColor[Object.values(CursorColor).indexOf(color)];
+
+const cursorColor = ref<CursorColor>(CursorColor.Blue);
 </script>
 
 <template>
     <div id="menu">
-        <div>
+        <div class="bar">
             <button
                 title="New Canvas"
                 @click="$emit('new')">
@@ -31,6 +53,17 @@ defineEmits<{
                         <path d="M12.48 3 7.73 7.75 3 12.59a2 2 0 0 0 0 2.82l4.3 4.3A1 1 0 0 0 8 20h12v-2h-7l7.22-7.22a2 2 0 0 0 0-2.83L15.31 3a2 2 0 0 0-2.83 0zM8.41 18l-4-4 4.75-4.84.74-.75 4.95 4.95-4.56 4.56-.07.08z" />
                     </svg>
             </button>
+            <select
+                v-model="cursorColor"
+                :style="{ 'background-color': cursorColor, color: complementaryColor(cursorColor) }"
+                title="Cursor Color"
+                @change="$emit('changeCursorColor', cursorColor)">
+                <option
+                    v-for="color of CursorColor"
+                    :key="color"
+                    :value="color"
+                    :style="{ 'background-color': color }">&nbsp;</option>
+            </select>
         </div>
         <div class="handle">
             <svg
@@ -47,7 +80,7 @@ defineEmits<{
 <style lang="postcss">
 #menu {
     position: absolute;
-    top: -50px;
+    top: -52px;
     left: 50%;
     padding: 16px 24px 2px;
     border: 1px solid;
@@ -60,11 +93,20 @@ defineEmits<{
 #menu button:not(:last-child) {
     margin-right: 4px;
 }
+#menu .bar {
+    padding-bottom: 4px;
+}
 #menu .handle {
     text-align: center;
 }
 #menu button svg {
     height: 24px;
     width: 24px;
+}
+#menu select {
+    vertical-align: bottom;
+    font-size: 28px;
+    border-radius: 3px;
+    border: 2px;
 }
 </style>

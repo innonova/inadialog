@@ -61,7 +61,8 @@ const clearCanvas = () => {
 <template>
     <MenuComponent
       @new="newCanvas"
-      @clear="clearCanvas"/>
+      @clear="clearCanvas"
+      @change-cursor-color="(color: string) => console.log('change color to: ', color)"/>
     <DiagramView
       v-if="newDiagramId.length > 0"/>
     <div v-else>
