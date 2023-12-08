@@ -336,7 +336,7 @@ const zoomLevel = computed(() => `${canvas.factor.value}x`)
 </template>
 
 <style lang="postcss">
-g path {
+g#canvas path {
   fill: transparent;
   stroke: #222;
   stroke-width: 2;

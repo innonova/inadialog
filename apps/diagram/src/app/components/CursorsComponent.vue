@@ -21,5 +21,5 @@ defineProps<{
       :key="pointer.id"
       href="#pointer"
       :transform="`translate(${pointer.x + 12} ${pointer.y + 12})`"
-      :fill="pointer.color" />
+      :style="{ fill: pointer.color }" />
 </template>
