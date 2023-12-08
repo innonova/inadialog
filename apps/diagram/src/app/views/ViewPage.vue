@@ -7,6 +7,7 @@ import { signInAnonymously } from 'firebase/auth';
 
 import DiagramView from '../components/DiagramView.vue';
 import MenuComponent from '../components/MenuComponent.vue';
+import { useCursor } from '../composables/cursor';
 import { createDiagram, useDiagram } from '../composables/diagram';
 
 const props = defineProps<{
@@ -17,6 +18,9 @@ const router = useRouter();
 const newDiagramId = ref<string>(props.diagramId);
 const diagram = useDiagram(newDiagramId);
 provide('diagram', diagram);
+
+const cursor = useCursor(() => newDiagramId.value);
+provide('cursor', cursor);
 
 watch (() => props.diagramId, async (diagramId) => {
   newDiagramId.value = diagramId;
@@ -62,7 +66,7 @@ const clearCanvas = () => {
     <MenuComponent
       @new="newCanvas"
       @clear="clearCanvas"
-      @change-cursor-color="(color: string) => console.log('change color to: ', color)"/>
+      @change-cursor-color="(color: string) => cursor.changeColor(color)"/>
     <DiagramView
       v-if="newDiagramId.length > 0"/>
     <div v-else>

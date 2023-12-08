@@ -99,3 +99,5 @@ export const useCursor = (diagramId: MaybeRefOrGetter<string | undefined>) => {
       db, `diagrams/${toValue(diagramId)}`)).value.filter(({ id }) => id !== cursorId))
   }
 }
+
+export type UseCursor = ReturnType<typeof useCursor>

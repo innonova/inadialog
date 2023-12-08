@@ -3,7 +3,7 @@ import { computed, onMounted, provide, reactive, ref, toValue, watch } from 'vue
 import type { Ref } from 'vue';
 
 import { useCanvas } from '../composables/canvas';
-import { useCursor } from '../composables/cursor';
+import type { UseCursor } from '../composables/cursor';
 import { path, position } from '../composables/curve';
 import type { UseDiagram } from '../composables/diagram';
 import { useHotkeys } from '../composables/hotkeys';
@@ -19,7 +19,6 @@ import RelationComponent from './diagram/RelationComponent.vue';
 import ShapeComponent from './diagram/ShapeComponent.vue';
 
 const diagram = saveInject<UseDiagram>('diagram')
-const diagramId = computed(() => diagram.diagram.value?.id)
 
 const shapeStore = useShapes();
 provide('shapes', shapeStore);
@@ -197,7 +196,7 @@ provide('mouse', mouse);
 const {
   updatePosition,
   others: otherCursors
-} = useCursor(diagramId);
+} = saveInject<UseCursor>('cursor');
 const lastUpdate = ref(performance.now());
 watch(mouse, (position) => {
   const now = performance.now();
