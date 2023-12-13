@@ -57,8 +57,8 @@ watch(() => ({ height: props.height, width: props.width }), (value) => {
 
 const textElement: Ref<InstanceType<typeof TextElement> | null> = ref(null);
 const resize = (corner: Corner, diff: { x: number, y: number }) => {
+  const newDiff = { x: 0, y: 0 };
   if (textElement.value) {
-    const newDiff = { x: 0, y: 0 };
     const { width, height } = toValue(textElement.value);
     if (size.width + diff.x > width + 16) {
       size.width = size.width + diff.x;
@@ -70,24 +70,29 @@ const resize = (corner: Corner, diff: { x: number, y: number }) => {
       newDiff.y = diff.y;
       moved.value = true;
     }
-    switch (corner) {
-    case 'ne':
-      position.value.x = position.value.x + newDiff.x / 2;
-      position.value.y = position.value.y - newDiff.y / 2;
-      break;
-    case 'se':
-      position.value.x = position.value.x + newDiff.x / 2;
-      position.value.y = position.value.y + newDiff.y / 2;
-      break;
-    case 'sw':
-      position.value.x = position.value.x - newDiff.x / 2;
-      position.value.y = position.value.y + newDiff.y / 2;
-      break;
-    case 'nw':
-      position.value.x = position.value.x - newDiff.x / 2;
-      position.value.y = position.value.y - newDiff.y / 2;
-      break;
-    }
+  } else {
+    size.width = size.width + diff.x;
+    size.height = size.height + diff.y;
+    newDiff.x = diff.x;
+    newDiff.y = diff.y;
+  }
+  switch (corner) {
+  case 'ne':
+    position.value.x = position.value.x + newDiff.x / 2;
+    position.value.y = position.value.y - newDiff.y / 2;
+    break;
+  case 'se':
+    position.value.x = position.value.x + newDiff.x / 2;
+    position.value.y = position.value.y + newDiff.y / 2;
+    break;
+  case 'sw':
+    position.value.x = position.value.x - newDiff.x / 2;
+    position.value.y = position.value.y + newDiff.y / 2;
+    break;
+  case 'nw':
+    position.value.x = position.value.x - newDiff.x / 2;
+    position.value.y = position.value.y - newDiff.y / 2;
+    break;
   }
 };
 
