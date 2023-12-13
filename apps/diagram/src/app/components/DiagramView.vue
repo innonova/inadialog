@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, provide, reactive, ref, toValue, watch } from 'vue';
-import type { Ref } from 'vue';
+import type { ComputedRef, Ref } from 'vue';
 
 import { useCanvas } from '../composables/canvas';
 import type { UseCursor } from '../composables/cursor';
@@ -13,10 +13,14 @@ import type { ShapeId } from '../composables/model/shape';
 import { useMouse } from '../composables/mouse';
 import { saveInject } from '../composables/provide';
 import { useShapes } from '../composables/shapes';
+import { useTrail, useRemoteTrail } from '../composables/trail';
+import type { UseRemoteTrail } from '../composables/trail';
 
 import CursorsComponent from './CursorsComponent.vue';
 import RelationComponent from './diagram/RelationComponent.vue';
 import ShapeComponent from './diagram/ShapeComponent.vue';
+import TrailsComponent from './TrailsComponent.vue';
+import { stringify } from 'querystring';
 
 const diagram = saveInject<UseDiagram>('diagram')
 
@@ -161,6 +165,36 @@ const keyboardZoom = (zoom: 'in' | 'out') => (event: KeyboardEvent) => {
   }
 }
 
+const {
+  addPart: addTrailPart,
+  commit: commitTrail,
+  trails
+} = useRemoteTrail(() => diagram.diagram.value?.id);
+const drawTrail = () => {
+  const stopWatch = watch(mouse, (position) => {
+    const d = trail.appendPoint(canvas.toCanvas(position));
+    pathTrails.value[pathTrails.value.length - 1].d = d;
+    addTrailPart(d);
+  });
+
+  const trail = useTrail(canvas.toCanvas(mouse.value));
+  pathTrails.value.push({ cursor: '0', d: '', color: cursorColor.value, fade: 1 });
+
+  return () => {
+    commitTrail();
+    stopWatch();
+
+    const path = pathTrails.value[pathTrails.value.length - 1];
+    const interval = setInterval(() => {
+      if (path.fade <= 0) {
+        clearInterval(interval);
+        pathTrails.value.shift();
+      }
+      path.fade = path.fade - 0.1;
+    }, 1000);
+  }
+}
+
 const svgElement: Ref<SVGSVGElement | null> = ref(null);
 const { registerHook } = useHotkeys(svgElement);
 // create different shapes
@@ -186,6 +220,8 @@ registerHook('Ctrl+Shift++', keyboardZoom('out'));
 registerHook('Ctrl+-', keyboardZoom('in'));
 registerHook('Ctrl+Shift+_', keyboardZoom('in'));
 
+registerHook('d', drawTrail);
+
 const {
   position: mouse,
   registerHook: registerMouse,
@@ -195,6 +231,7 @@ provide('mouse', mouse);
 
 const {
   updatePosition,
+  color: cursorColor,
   others: otherCursors
 } = saveInject<UseCursor>('cursor');
 const lastUpdate = ref(performance.now());
@@ -294,7 +331,15 @@ const transform = computed(() => {
   const { a, b, c, d, e, f } = canvas.transformM.value;
   return `matrix(${a}, ${b}, ${c}, ${d}, ${e}, ${f})`;
 })
-const zoomLevel = computed(() => `${canvas.factor.value}x`)
+const zoomLevel = computed(() => `${canvas.factor.value}x`);
+
+const pathTrails = ref<{ cursor: string, d: string, color: string, fade: number }[]>([]);
+
+const concat = <T,>(first: Ref<Array<T>>, second: Ref<Array<T>>) => computed(() => {
+  return first.value.concat(second.value);
+});
+
+const allTrails = concat(trails, pathTrails)
 </script>
 
 <template>
@@ -324,10 +369,10 @@ const zoomLevel = computed(() => `${canvas.factor.value}x`)
                 :d="transientPath">
             </path>
         </g>
-        <g id="cursors" :style="{ transform }">
-          <CursorsComponent
+        <CursorsComponent
+            :transform="transform"
             :cursors="otherCursors" />
-        </g>
+        <TrailsComponent :paths="allTrails" :transform="transform"/>
     </svg>
     <div id="zoom-level" :class="{ visible: fade }">
       <span>zoom</span><span>{{ zoomLevel }}</span>
