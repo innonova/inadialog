@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, provide, reactive, ref, toValue, watch } from 'vue';
-import type { ComputedRef, Ref } from 'vue';
+import type { Ref } from 'vue';
 
 import { useCanvas } from '../composables/canvas';
 import type { UseCursor } from '../composables/cursor';
@@ -14,13 +14,11 @@ import { useMouse } from '../composables/mouse';
 import { saveInject } from '../composables/provide';
 import { useShapes } from '../composables/shapes';
 import { useTrail, useRemoteTrail } from '../composables/trail';
-import type { UseRemoteTrail } from '../composables/trail';
 
 import CursorsComponent from './CursorsComponent.vue';
 import RelationComponent from './diagram/RelationComponent.vue';
 import ShapeComponent from './diagram/ShapeComponent.vue';
 import TrailsComponent from './TrailsComponent.vue';
-import { stringify } from 'querystring';
 
 const diagram = saveInject<UseDiagram>('diagram')
 

@@ -1,41 +1,10 @@
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import type { Ref } from 'vue';
-import {
-  useCurrentUser,
-  useFirebaseAuth,
-  useIsCurrentUserLoaded,
-} from 'vuefire';
-import { signInAnonymously } from 'firebase/auth';
 
 import { useCursor } from '../composables/cursor';
 
 const diagram: Ref<SVGSVGElement | null> = ref(null);
-
-const auth = useFirebaseAuth();
-const cu = useCurrentUser();
-const isLoaded = useIsCurrentUserLoaded();
-
-const checkLogin = () => {
-  if (cu.value === null && auth) {
-    console.log('login needed');
-    signInAnonymously(auth);
-  }
-};
-
-if (isLoaded.value) {
-  checkLogin();
-}
-
-watch(isLoaded, () => {
-  if (isLoaded.value) {
-    checkLogin();
-  }
-});
-
-watch(cu, () => {
-  console.log('user', cu.value?.toJSON());
-});
 
 const {
   removeCursor,

@@ -1,38 +1,7 @@
 <script lang="ts" setup>
-import {
-  useCurrentUser,
-  useFirebaseAuth,
-  useIsCurrentUserLoaded,
-} from 'vuefire';
-import { ref, watch } from 'vue';
-import { signInAnonymously } from 'firebase/auth';
+import { ref } from 'vue';
 import { useDiagram } from '../composables/diagram';
 import { ShapeType } from '../composables/model/shape';
-
-const auth = useFirebaseAuth();
-const cu = useCurrentUser();
-const isLoaded = useIsCurrentUserLoaded();
-
-const checkLogin = () => {
-  if (cu.value === null && auth) {
-    console.log('login needed');
-    signInAnonymously(auth);
-  }
-};
-
-if (isLoaded.value) {
-  checkLogin();
-}
-
-watch(isLoaded, () => {
-  if (isLoaded.value) {
-    checkLogin();
-  }
-});
-
-watch(cu, () => {
-  console.log('user', cu.value?.toJSON());
-});
 
 const diagram = useDiagram(ref('d3b0f66b-2b74-4b95-84eb-ee9c2b131ffe'));
 

@@ -1,6 +1,7 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory, RouteLocationNormalized } from 'vue-router';
 
 import { getCurrentUser } from 'vuefire';
+import { getAuth, signInAnonymously } from 'firebase/auth';
 
 import ControlPage from './views/ControlPage.vue';
 import CursorPage from './views/CursorPage.vue';
@@ -11,6 +12,14 @@ import ViewPage from './views/ViewPage.vue';
 declare module 'vue-router' {
   interface RouteMeta {
     title?: string;
+  }
+}
+
+const necessaryLogin = async (_to: RouteLocationNormalized, _from: RouteLocationNormalized) => {
+  // login anonymously if no user exists
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    await signInAnonymously(getAuth());
   }
 }
 
@@ -44,12 +53,14 @@ const router = createRouter({
       name: 'Control',
       component: ControlPage,
       meta: { title: 'Control' },
+      beforeEnter: [necessaryLogin]
     },
     {
       path: '/cursor',
       name: 'Cursor',
       component: CursorPage,
       meta: { title: 'Cursor' },
+      beforeEnter: [necessaryLogin]
     },
     {
       path: '/view/:diagramId',
@@ -57,6 +68,7 @@ const router = createRouter({
       component: ViewPage,
       props: true,
       meta: { title: 'View' },
+      beforeEnter: [necessaryLogin]
     },
     {
       path: '/registration',
