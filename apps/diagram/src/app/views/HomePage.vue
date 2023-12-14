@@ -11,6 +11,7 @@ import {
   User
 } from 'firebase/auth';
 import { useCurrentUser } from 'vuefire';
+import ProfileComponent from '../components/user/ProfileComponent.vue';
 
 const auth = getAuth();
 
@@ -44,6 +45,10 @@ const logOut = async () => {
   await signOut(auth);
 }
 
+const username = computed(() => !currentUser.value?.isAnonymous &&
+  currentUser.value?.displayName ||
+  'Anonymous');
+
 </script>
 
 <template>
@@ -60,9 +65,13 @@ const logOut = async () => {
         </template>
     </div>
     <div v-else>
-        <h2>Welcome {{ currentUser?.displayName }}</h2>
+        <h2>Welcome {{ username }}</h2>
         <button @click="logOut">Log out</button>
     </div>
+    <ProfileComponent
+      v-if="currentUser !== null"
+      id="profile"
+      :profile="currentUser"/>
 </template>
 
 <style scoped>
@@ -80,5 +89,10 @@ button {
 }
 #login-error {
   margin-bottom: 16px;
+}
+#profile {
+  position: absolute;
+  top: 8px;
+  right: 12px;
 }
 </style>
