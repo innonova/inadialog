@@ -5,6 +5,7 @@ import { useFirestore, useDocument } from 'vuefire';
 
 import { ArrowStyle, Direction, Relation, RelationId } from './model/relation';
 import { Color, Shape, ShapeId, ShapeType } from './model/shape';
+import { getAuth } from 'firebase/auth';
 
 type HasId = {
   id: number
@@ -25,7 +26,13 @@ export interface Diagram {
 
 export const createDiagram = async (id: string = crypto.randomUUID()): Promise<string> => {
   const db = useFirestore();
-  await setDoc(doc(db, 'diagrams', id), { id, shapes: [], relations: [], visibility: 'public' });
+  const auth = getAuth();
+  await setDoc(doc(db, 'diagrams', id), {
+    author_id: auth.currentUser?.uid,
+    id, shapes: [],
+    relations: [],
+    visibility: 'public'
+  });
   return id;
 };
 
