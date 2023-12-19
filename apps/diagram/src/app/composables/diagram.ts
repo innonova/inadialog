@@ -14,15 +14,18 @@ const findMaxId = (objects: HasId[]) => {
   return maxId > 0 ? maxId + 1 : 1;
 }
 
+export type Visibility = 'private' | 'public';
+
 export interface Diagram {
   id: string;
   shapes: Shape[];
   relations: Relation[];
+  visibility: Visibility
 }
 
 export const createDiagram = async (id: string = crypto.randomUUID()): Promise<string> => {
   const db = useFirestore();
-  await setDoc(doc(db, 'diagrams', id), { id, shapes: [], relations: [] });
+  await setDoc(doc(db, 'diagrams', id), { id, shapes: [], relations: [], visibility: 'public' });
   return id;
 };
 
@@ -200,6 +203,13 @@ export const useDiagram = (diagramId: Ref<string>) => {
     }
   }
 
+  const changeVisibility = (visibility: 'private' | 'public') => {
+    if (diagram.value) {
+      diagram.value.visibility = visibility;
+      setDoc(doc(db, 'diagrams', toValue(diagramId)), diagram.value);
+    }
+  }
+
   const db = useFirestore();
   const diagram = useDocument<Diagram>(computed(() => doc(db, 'diagrams', toValue(diagramId))));
 
@@ -207,6 +217,7 @@ export const useDiagram = (diagramId: Ref<string>) => {
     diagram: computed(() => diagram.value),
     shapes: computed(() => diagram.value?.shapes || []),
     relations: computed(() => diagram.value?.relations || []),
+    visibility: computed(() => diagram.value?.visibility || 'public'),
     addShape,
     removeShape,
     addRelation,
@@ -216,7 +227,8 @@ export const useDiagram = (diagramId: Ref<string>) => {
     colorShape,
     styleRelation,
     setShapeText,
-    clear
+    clear,
+    changeVisibility
   }
 };
 

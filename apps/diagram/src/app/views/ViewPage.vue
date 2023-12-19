@@ -4,8 +4,10 @@ import { useRouter } from 'vue-router';
 
 import DiagramView from '../components/DiagramView.vue';
 import MenuComponent from '../components/MenuComponent.vue';
+import SettingsComponent from '../components/SettingsComponent.vue';
+
 import { useCursor } from '../composables/cursor';
-import { createDiagram, useDiagram } from '../composables/diagram';
+import { Visibility, createDiagram, useDiagram } from '../composables/diagram';
 
 const props = defineProps<{
   diagramId: string
@@ -36,16 +38,32 @@ const newCanvas = async () => {
 const clearCanvas = () => {
   diagram.clear();
 }
+
+const updateSettings = (visibility: Visibility) => {
+  diagram.changeVisibility(visibility);
+};
+
+const settings = ref<{ show: () => void } | null>(null);
+const showSettings = () => {
+  settings.value?.show();
+}
 </script>
 
 <template>
     <MenuComponent
       @new="newCanvas"
       @clear="clearCanvas"
-      @change-cursor-color="(color: string) => cursor.changeColor(color)"/>
+      @change-cursor-color="(color: string) => cursor.changeColor(color)"
+      @show-settings="showSettings"
+    />
     <DiagramView
       v-if="newDiagramId.length > 0"/>
     <div v-else>
       Load or create new diagram.
     </div>
+    <SettingsComponent
+      ref='settings'
+      :diagramId="newDiagramId"
+      :visibility="diagram.visibility.value"
+      @change-visibility="updateSettings"/>
 </template>
