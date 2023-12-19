@@ -12,6 +12,7 @@ import {
 } from 'firebase/auth';
 import { useCurrentUser } from 'vuefire';
 import ProfileComponent from '../components/user/ProfileComponent.vue';
+import { useDatastore } from '../composables/datastore';
 
 const auth = getAuth();
 
@@ -49,6 +50,7 @@ const username = computed(() => !currentUser.value?.isAnonymous &&
   currentUser.value?.displayName ||
   'Anonymous');
 
+const { diagrams, hasDiagrams } = useDatastore();
 </script>
 
 <template>
@@ -67,6 +69,17 @@ const username = computed(() => !currentUser.value?.isAnonymous &&
     <div v-else>
         <h2>Welcome {{ username }}</h2>
         <button @click="logOut">Log out</button>
+        <h3>Your Diagrams</h3>
+        <div>
+          <ul v-if="hasDiagrams">
+            <li
+              v-for="diagram of diagrams"
+              :key="diagram.id">{{ diagram.id }} (author: {{ diagram.author_id }})</li>
+          </ul>
+          <div v-else>
+            <span>No diagrams found</span>
+          </div>
+        </div>
     </div>
     <ProfileComponent
       v-if="currentUser !== null"

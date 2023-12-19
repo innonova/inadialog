@@ -18,6 +18,7 @@ const findMaxId = (objects: HasId[]) => {
 export type Visibility = 'private' | 'public';
 
 export interface Diagram {
+  author_id: string;
   id: string;
   shapes: Shape[];
   relations: Relation[];
