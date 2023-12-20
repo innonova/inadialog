@@ -75,11 +75,19 @@ export function useElementSize(elementRef: Ref<SVGElement | null>) {
 
 const { factor } = useCanvas();
 
-export function useMovement(
+export function useMovement({
+  elementRef,
+  initialPosition,
+  onStart,
+  onMove,
+  onEnd
+}: {
   elementRef: Ref<SVGGElement | null>,
   initialPosition: MaybeRefOrGetter<{ x: number, y: number}>,
-  callback?: (diff: { x: number, y: number }) => void
-) {
+  onStart?: (start: { x: number, y: number }) => void,
+  onMove?: (diff: { x: number, y: number }) => void
+  onEnd?: (end: { x: number, y: number }) => void
+}) {
   const movement = { x: 0, y: 0 };
   let origin = toValue(initialPosition);
 
@@ -91,13 +99,16 @@ export function useMovement(
 
     target.setPointerCapture(event.pointerId);
 
-    target.addEventListener('pointerup', () => {
+    target.addEventListener('pointerup', (event: PointerEvent) => {
       event.stopPropagation();
       if (target.hasPointerCapture(event.pointerId)) {
         target.releasePointerCapture(event.pointerId);
       }
       target.removeEventListener('pointermove', move);
+      onEnd?.({ x: event.clientX, y: event.clientY });
     }, { once: true });
+
+    onStart?.(origin);
   }
 
   const move = (event: PointerEvent) => {
@@ -105,9 +116,7 @@ export function useMovement(
     movement.x = (event.clientX - origin.x) * factor.value;
     movement.y = (event.clientY - origin.y) * factor.value;
     origin = { x: event.clientX, y: event.clientY };
-    if (callback) {
-      callback(toValue(movement));
-    }
+    onMove?.(toValue(movement));
   };
 
   onMounted(() => {

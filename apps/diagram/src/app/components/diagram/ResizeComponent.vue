@@ -16,43 +16,43 @@ const emit = defineEmits<{
 
 const refNE = ref<SVGCircleElement | null>(null);
 const positionNE = computed(() => ({ x: props.width / 2, y: -props.height / 2 }));
-useMovement(
-  refNE,  
-  positionNE,
-  (diff) => {
+useMovement({
+  elementRef: refNE,  
+  initialPosition: positionNE,
+  onMove: (diff) => {
     updateSize('ne', { x: diff.x, y: -diff.y })
   }
-);
+});
     
 const refSE = ref<SVGCircleElement | null>(null);
 const positionSE = computed(() => ({ x: props.width / 2, y: props.height / 2 }));
-useMovement(
-  refSE,
-  positionSE,
-  (diff) => {
+useMovement({
+  elementRef: refSE,
+  initialPosition: positionSE,
+  onMove: (diff) => {
     updateSize('se', { x: diff.x, y: diff.y });
   }
-);
+});
 
 const refSW = ref<SVGCircleElement | null>(null);
 const positionSW = computed(() => ({ x: -props.width / 2, y: props.height / 2 }));
-useMovement(
-  refSW,
-  positionSW,
-  (diff) => {
+useMovement({
+  elementRef: refSW,
+  initialPosition: positionSW,
+  onMove: (diff) => {
     updateSize('sw', { x: -diff.x, y: diff.y });
   }
-);
+});
 
 const refNW = ref<SVGCircleElement | null>(null);
 const positionNW = computed(() => ({ x: -props.width / 2, y: -props.height / 2 }));
-useMovement(
-  refNW,
-  positionNW,
-  (diff) => {
+useMovement({
+  elementRef: refNW,
+  initialPosition: positionNW,
+  onMove: (diff) => {
     updateSize('nw', { x: -diff.x, y: -diff.y });
   } 
-);
+});
 
 const updateSize = (corner: Corner, { x, y }: { x: number, y: number}) => {
   const diff = { x: 0, y: 0 };

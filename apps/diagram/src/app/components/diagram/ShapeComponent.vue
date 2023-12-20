@@ -38,10 +38,14 @@ const shapes = inject<Shapes>('shapes');
 
 const groupRef = ref<SVGGElement | null>(null);
 const position = ref<Point>({ x: props.x, y: props.y });
-useMovement(groupRef, () => ({ x: props.x, y: props.y }), (diff) => {
-  moved.value = true;
-  position.value.x = position.value.x + diff.x;
-  position.value.y = position.value.y + diff.y;
+useMovement({
+  elementRef: groupRef,
+  initialPosition: () => ({ x: props.x, y: props.y }),
+  onMove: (diff) => {
+    moved.value = true;
+    position.value.x = position.value.x + diff.x;
+    position.value.y = position.value.y + diff.y;
+  }
 });
 watch([() => props.x, () => props.y], () => {
   position.value.x = props.x;
