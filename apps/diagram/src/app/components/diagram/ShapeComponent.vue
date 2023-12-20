@@ -58,23 +58,21 @@ watch(() => ({ height: props.height, width: props.width }), (value) => {
 const textElement: Ref<InstanceType<typeof TextElement> | null> = ref(null);
 const resize = (corner: Corner, diff: { x: number, y: number }) => {
   const newDiff = { x: 0, y: 0 };
+  let { width, height } = { width: 0, height: 0 };
   if (textElement.value) {
-    const { width, height } = toValue(textElement.value);
-    if (size.width + diff.x > width + 16) {
-      size.width = size.width + diff.x;
-      newDiff.x = diff.x;
-      moved.value = true;
-    }
-    if (size.height + diff.y > height + 9) {
-      size.height = size.height + diff.y;
-      newDiff.y = diff.y;
-      moved.value = true;
-    }
-  } else {
+    const textElementSize = toValue(textElement.value);
+    width = textElementSize.width;
+    height = textElementSize.height;
+  }
+  if (size.width + diff.x > width + 16) {
     size.width = size.width + diff.x;
-    size.height = size.height + diff.y;
     newDiff.x = diff.x;
+    moved.value = true;
+  }
+  if (size.height + diff.y > height + 9) {
+    size.height = size.height + diff.y;
     newDiff.y = diff.y;
+    moved.value = true;
   }
   switch (corner) {
   case 'ne':
