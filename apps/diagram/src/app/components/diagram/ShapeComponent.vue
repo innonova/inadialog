@@ -45,7 +45,8 @@ useMovement({
     moved.value = true;
     position.value.x = position.value.x + diff.x;
     position.value.y = position.value.y + diff.y;
-  }
+  },
+  onEnd: () => handlePointerup()
 });
 watch([() => props.x, () => props.y], () => {
   position.value.x = props.x;
@@ -60,23 +61,32 @@ watch(() => ({ height: props.height, width: props.width }), (value) => {
 });
 
 const textElement: Ref<InstanceType<typeof TextElement> | null> = ref(null);
+const negativeOffset = reactive({ x: 0, y: 0 });
+const resetNegativeOffset = () => {
+  negativeOffset.x = 0;
+  negativeOffset.y = 0;
+};
 const resize = (corner: Corner, diff: { x: number, y: number }) => {
   const newDiff = { x: 0, y: 0 };
-  let { width, height } = { width: 0, height: 0 };
+  let { width, height } = { width: 10, height: 17 };
   if (textElement.value) {
     const textElementSize = toValue(textElement.value);
     width = textElementSize.width;
     height = textElementSize.height;
   }
-  if (size.width + diff.x > width + 16) {
+  if (negativeOffset.x >= 0 && size.width + diff.x > width + 16) {
     size.width = size.width + diff.x;
     newDiff.x = diff.x;
     moved.value = true;
+  } else {
+    negativeOffset.x = negativeOffset.x + diff.x;
   }
-  if (size.height + diff.y > height + 9) {
+  if (negativeOffset.y >= 0 && size.height + diff.y > height + 9) {
     size.height = size.height + diff.y;
     newDiff.y = diff.y;
     moved.value = true;
+  } else {
+    negativeOffset.y = negativeOffset.y + diff.y;
   }
   switch (corner) {
   case 'ne':
@@ -160,8 +170,7 @@ const { state, toggle } = useState();
         ref="groupRef"
         :class="$props.color"
         :data-type="$props.type"
-        :transform="`translate(${position.x} ${position.y})`"
-        @pointerup="handlePointerup">
+        :transform="`translate(${position.x} ${position.y})`">
         <rect
             v-if="$props.type === ShapeType.Rectangle"
             rx="15"
@@ -185,7 +194,9 @@ const { state, toggle } = useState();
         <ResizeComponent
           :height="size.height"
           :width="size.width"
-          @resize="resize"/>
+          @resize="resize"
+          @start-resize="resetNegativeOffset"
+          @end-resize="handlePointerup"/>
     </g>
 </template>
 

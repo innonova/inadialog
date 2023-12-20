@@ -12,6 +12,8 @@ export type Corner = 'ne' | 'se' | 'sw' | 'nw';
 
 const emit = defineEmits<{
   (event: 'resize', corner: Corner, diff: { x: number, y: number }): void
+  (event: 'startResize'): void
+  (event: 'endResize'): void
 }>();
 
 const refNE = ref<SVGCircleElement | null>(null);
@@ -19,19 +21,23 @@ const positionNE = computed(() => ({ x: props.width / 2, y: -props.height / 2 })
 useMovement({
   elementRef: refNE,  
   initialPosition: positionNE,
+  onStart: () => emit('startResize'),
   onMove: (diff) => {
     updateSize('ne', { x: diff.x, y: -diff.y })
-  }
+  },
+  onEnd: () => emit('endResize')
 });
-    
+
 const refSE = ref<SVGCircleElement | null>(null);
 const positionSE = computed(() => ({ x: props.width / 2, y: props.height / 2 }));
 useMovement({
   elementRef: refSE,
   initialPosition: positionSE,
+  onStart: () => emit('startResize'),
   onMove: (diff) => {
     updateSize('se', { x: diff.x, y: diff.y });
-  }
+  },
+  onEnd: () => emit('endResize')
 });
 
 const refSW = ref<SVGCircleElement | null>(null);
@@ -39,9 +45,11 @@ const positionSW = computed(() => ({ x: -props.width / 2, y: props.height / 2 })
 useMovement({
   elementRef: refSW,
   initialPosition: positionSW,
+  onStart: () => emit('startResize'),
   onMove: (diff) => {
     updateSize('sw', { x: -diff.x, y: diff.y });
-  }
+  },
+  onEnd: () => emit('endResize')
 });
 
 const refNW = ref<SVGCircleElement | null>(null);
@@ -49,9 +57,11 @@ const positionNW = computed(() => ({ x: -props.width / 2, y: -props.height / 2 }
 useMovement({
   elementRef: refNW,
   initialPosition: positionNW,
+  onStart: () => emit('startResize'),
   onMove: (diff) => {
     updateSize('nw', { x: -diff.x, y: -diff.y });
-  } 
+  },
+  onEnd: () => emit('endResize')
 });
 
 const updateSize = (corner: Corner, { x, y }: { x: number, y: number}) => {
