@@ -4,6 +4,7 @@ import type { Ref, WatchStopHandle } from 'vue';
 
 import { path } from '../../composables/curve';
 import type { Point } from '../../composables/curve';
+import type { UseDiagram } from '../../composables/diagram';
 import type { ShapeId } from '../../composables/model/shape';
 import { saveInject} from '../../composables/provide';
 
@@ -30,10 +31,7 @@ defineEmits<{
   (event: 'focus', id: number): void
 }>();
 
-interface Diagram {
-  connect(id: RelationId, shapedId: ShapeId, type: 'start' | 'end'): void
-};
-const diagram = saveInject<Diagram>('diagram');
+const diagram = saveInject<UseDiagram>('diagram');
 
 interface Shapes {
   getNearestDockingPoint(id: ShapeId, point: Point): DockingPoint
@@ -178,6 +176,9 @@ const position = computed(() => ({
   x: (start.position.x + end.position.x) / 2,
   y: (start.position.y + end.position.y) / 2
 }));
+const commitLabelChange = (text: string, position: 'start' | 'middle' | 'end') => {
+  diagram.setLabelText(props.id, text, position);
+}
 </script>
 
 <template>
@@ -191,13 +192,16 @@ const position = computed(() => ({
           @click.stop="$emit('focus', $props.id)"></path>
         <RelationLabelComponent
           :position="startLabelPosition"
-          :text="$props.from.text" />
+          :text="$props.from.text"
+          @text-changed="(text: string) => commitLabelChange(text, 'start')" />
         <RelationLabelComponent
           :position="position"
-          :text="$props.text"/>
+          :text="$props.text"
+          @text-changed="(text: string) => commitLabelChange(text, 'middle')" />
         <RelationLabelComponent
           :position="endLabelPosition"
-          :text="$props.to.text"/>
+          :text="$props.to.text"
+          @text-changed="(text: string) => commitLabelChange(text, 'end')" />
         <RelationEndpointComponent
             :position="start.position"
             type="start"

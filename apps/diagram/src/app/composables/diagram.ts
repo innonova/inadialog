@@ -203,6 +203,28 @@ export const useDiagram = (diagramId: Ref<string>) => {
     }
   };
 
+  const setLabelText = (
+    relationId: RelationId,
+    text: string,
+    position: 'start' | 'middle' | 'end'
+  ) => {
+    const relation = diagram.value?.relations.find((item) => item.id === relationId);
+    if (relation) {
+      switch (position) {
+      case 'start':
+        relation.from.text = text;
+        break;
+      case 'middle':
+        relation.text = text;
+        break;
+      case 'end':
+        relation.to.text = text;
+        break;
+      }
+      setDoc(doc(db, 'diagrams', toValue(diagramId)), diagram.value);
+    }
+  };
+
   const clear = () => {
     if (diagram.value) {
       diagram.value.relations = [];
@@ -235,6 +257,7 @@ export const useDiagram = (diagramId: Ref<string>) => {
     colorShape,
     styleRelation,
     setShapeText,
+    setLabelText,
     clear,
     changeVisibility
   }

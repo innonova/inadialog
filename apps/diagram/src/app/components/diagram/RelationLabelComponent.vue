@@ -11,6 +11,10 @@ withDefaults(defineProps<{
   position: () => ({ x: 0, y: 0 })
 })
 
+defineEmits<{
+  (event: 'textChanged', text: string): void
+}>();
+
 const edit = () => {
   if (state.value !== 'edit') {
     toggleEditState();
@@ -24,13 +28,16 @@ defineExpose({
 </script>
 
 <template>
-  <TextElement
-    v-if="state === 'edit' || $props.text.length > 0"
-    :value="$props.text"
-    :edit="state === 'edit'"
-    :position="$props.position"
-    @textchange="() => {}"
-    @textblur="() => {
-      toggleEditState()
-    }"/>
+  <g @click="edit">
+    <TextElement
+      v-if="state === 'edit' || $props.text.length > 0"
+      :value="$props.text"
+      :edit="state === 'edit'"
+      :position="$props.position"
+      @textchange="() => {}"
+      @textblur="(text: string) => {
+        toggleEditState();
+        $emit('textChanged', text);
+      }"/>
+  </g>
 </template>
