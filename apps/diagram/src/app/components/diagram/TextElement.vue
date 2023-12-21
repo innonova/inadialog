@@ -2,16 +2,15 @@
 import { computed, ref, watch } from 'vue';
 
 import { useElementSize } from '../../composables/svg-element';
+import { Point } from '../../composables/curve';
 
 interface Props {
   value: string
   edit: boolean
-  x?: number
-  y?: number
+  position?: Point
 }
 const props = withDefaults(defineProps<Props>(), {
-  x: 0,
-  y: 0
+  position: () => ({ x: 0, y: 0 })
 });
 defineEmits<{
   (event: 'textchange'): void
@@ -46,10 +45,10 @@ watch(() => props.value, (value) => {
 </script>
 
 <template>
-  <text ref="textElement" :y="13 + y - height / 2">
+  <text ref="textElement" :y="13 + position.y - height / 2">
     <template v-for="(line, index) of lines" :key="index">
       <tspan
-        :x="x - width / 2"
+        :x="position.x - width / 2"
         :dy="index > 0 ? '1em' : '0'"
         :visibility="line.length === 0 ? 'hidden' : undefined">
         {{ line.length > 0 ? line : '.' }}
@@ -60,7 +59,7 @@ watch(() => props.value, (value) => {
     v-if="edit"
     :height="height + 8"
     :width="width"
-    :transform="`translate(${x - width / 2} ${y - height / 2})`">
+    :transform="`translate(${position.x - width / 2} ${position.y - height / 2})`">
     <textarea
       v-model="text"
       v-focus

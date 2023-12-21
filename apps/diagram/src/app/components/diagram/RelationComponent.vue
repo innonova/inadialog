@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import type { Ref, WatchStopHandle } from 'vue';
 
 import { path } from '../../composables/curve';
@@ -10,6 +10,7 @@ import { saveInject} from '../../composables/provide';
 import RelationEndpointComponent from './RelationEndpointComponent.vue';
 import { RelationId } from '../../composables/model/relation';
 import { DockingPoint, Side } from '../../composables/shapes';
+import RelationLabelComponent from './RelationLabelComponent.vue';
 
 type EndpointProps = {
   id: ShapeId,
@@ -20,6 +21,7 @@ type EndpointProps = {
 }
 const props = defineProps<{
   id: RelationId,
+  text: string,
   from: EndpointProps,
   to: EndpointProps
 }>();
@@ -147,18 +149,55 @@ const disconnect = (type: 'start' | 'end') => {
     });
   }
 }
+
+const d = computed(() => path(start.position, start.side.value, end.position, end.side.value));
+
+const sideOffset = (side: Side | null): Point => {
+  switch (side) {
+  case 'left':
+    return { x: -16, y: -16 };
+  case 'right':
+    return { x: 32, y: -16 };
+  case 'top': 
+    return { x: 32, y: -16 };
+  case 'bottom':
+    return { x: 32, y: 16 };
+  default:
+    return { x: 0, y: 0 };
+  }
+}
+const startLabelPosition = computed(() => {
+  const offset = sideOffset(start.side.value);
+  return { x: start.position.x + offset.x, y: start.position.y + offset.y };
+});
+const endLabelPosition = computed(() => {
+  const offset = sideOffset(end.side.value);
+  return { x: end.position.x + offset.x, y: end.position.y + offset.y };
+});
+const position = computed(() => ({
+  x: (start.position.x + end.position.x) / 2,
+  y: (start.position.y + end.position.y) / 2
+}));
 </script>
 
 <template>
     <g
       :id="$props.id.toString()"
       data-type="curve">
-        <path
-          :d="path(start.position, start.side.value, end.position, end.side.value)"></path>
+        <path :d="d"></path>
         <path
           class="handle"
-          :d="path(start.position, start.side.value, end.position, end.side.value)"
+          :d="d"
           @click.stop="$emit('focus', $props.id)"></path>
+        <RelationLabelComponent
+          :position="startLabelPosition"
+          :text="$props.from.text" />
+        <RelationLabelComponent
+          :position="position"
+          :text="$props.text"/>
+        <RelationLabelComponent
+          :position="endLabelPosition"
+          :text="$props.to.text"/>
         <RelationEndpointComponent
             :position="start.position"
             type="start"
@@ -172,7 +211,7 @@ const disconnect = (type: 'start' | 'end') => {
             :directed="$props.to.style !== 'none'"
             :rotation="rotation(end.side.value)"
             @disconnect="disconnect"
-            @connect="connect"/>
+            @connect="connect" />
     </g>
 </template>
 

@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { computed, inject, onMounted, onUnmounted, ref, reactive, toValue, watch } from 'vue';
+import { inject, onMounted, onUnmounted, ref, reactive, toValue, watch } from 'vue';
 import type { Ref, UnwrapNestedRefs } from 'vue';
 
+import { Point } from '../../composables/curve';
 import { Color, ShapeId, ShapeType } from '../../composables/model/shape';
+import { useState } from '../../composables/state';
 import { useMovement } from '../../composables/svg-element';
 import ResizeComponent from './ResizeComponent.vue';
 import type { Corner } from './ResizeComponent.vue';
 import TextElement from './TextElement.vue';
-import { Point } from '../../composables/curve';
 
 const props = defineProps<{
   id: ShapeId,
@@ -146,20 +147,6 @@ onMounted(() => {
 onUnmounted(() => {
   shapes?.unregister(props.id);
 });
-
-const useState = () => {
-  const states = ['idle', 'edit'] as const;
-  const state: Ref<number> = ref(0);
-
-  const toggle = () => {
-    state.value = (state.value + 1) % states.length;
-  };
-
-  return {
-    state: computed(() => states[state.value]),
-    toggle
-  };
-};
 
 const { state, toggle } = useState();
 </script>
