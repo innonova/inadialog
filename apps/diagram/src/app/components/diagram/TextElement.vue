@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 
+import { vFocus } from '../../composables/directives';
 import { useElementSize } from '../../composables/svg-element';
 import { Point } from '../../composables/curve';
 
@@ -22,12 +23,6 @@ const font = computed(() => ({
   size: '22',
   weight: 600
 }));
-
-const vFocus = {
-  mounted: (el: HTMLOrSVGElement) => {
-    el.focus();
-  }
-}
 
 const text = ref<string>(props.value);
 const lines = computed(() => text.value.split('\n'));
