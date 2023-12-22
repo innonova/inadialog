@@ -1,5 +1,6 @@
 <script setup lang="ts">
 
+import { useCanvas } from '../../composables/canvas';
 import type { Point } from '../../composables/curve';
 import type { ShapeId } from '../../composables/model/shape';
 
@@ -22,8 +23,10 @@ const disconnect = () => {
 const shape = (...types: string[]) =>
   (element: Element) => types.includes(element.parentElement?.getAttribute('data-type') || '');
 
+const { toScreen } = useCanvas();
 const dropEndpoint = () => {
-  const shapeGroup = document.elementsFromPoint(props.position.x, props.position.y)
+  const screenPoint = toScreen(props.position);
+  const shapeGroup = document.elementsFromPoint(screenPoint.x, screenPoint.y)
     .find(shape('rectangle', 'ellipse'))?.parentElement || null;
   emit('connect', shapeGroup ? +shapeGroup.id as ShapeId : null, props.type)
 };

@@ -23,15 +23,22 @@ const setTransformM = ([a, b, c, d, e, f]: [
 
 // translate screen coordinates to canvas coordinates
 const toCanvas = (position: Point): Point => {
-  const point = new DOMPoint();
-  point.x = position.x;
-  point.y = position.y;
+  const point = new DOMPoint(position.x, position.y);
   const translationMatrix = transformM.value.inverse();
   const svgPoint = point.matrixTransform(translationMatrix);
   return {
     x: svgPoint.x,
     y: svgPoint.y
   };
+}
+
+const toScreen = (position: Point): Point => {
+  const point = new DOMPoint(position.x, position.y);
+  const screenPoint = point.matrixTransform(transformM.value);
+  return {
+    x: screenPoint.x,
+    y: screenPoint.y
+  }
 }
 
 // Move canvas
@@ -62,6 +69,7 @@ export const useCanvas = () => {
     setTransformM,
     factor: computed(() => factor.value),
     toCanvas,
+    toScreen,
     move,
     zoomIn,
     zoomOut
