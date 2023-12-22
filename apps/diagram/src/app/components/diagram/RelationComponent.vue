@@ -5,6 +5,7 @@ import type { Ref, WatchStopHandle } from 'vue';
 import { path } from '../../composables/curve';
 import type { Point } from '../../composables/curve';
 import type { UseDiagram } from '../../composables/diagram';
+import { vClickHandler } from '../../composables/directives';
 import type { ShapeId } from '../../composables/model/shape';
 import { saveInject} from '../../composables/provide';
 
@@ -39,8 +40,11 @@ interface Shapes {
   getPosition(id: ShapeId): Ref<Point>
 }
 const shapes = saveInject<Shapes>('shapes');
-
 const mouse = saveInject<Ref<Point>>('mouse');
+
+const startLabel: Ref<InstanceType<typeof RelationLabelComponent> | null> = ref(null);
+const middleLabel: Ref<InstanceType<typeof RelationLabelComponent> | null> = ref(null);
+const endLabel: Ref<InstanceType<typeof RelationLabelComponent> | null> = ref(null);
 
 const start: {
   side: Ref<Side | null>,
@@ -182,6 +186,21 @@ const position = computed(() => ({
 const commitLabelChange = (text: string, position: 'start' | 'middle' | 'end') => {
   diagram.setLabelText(props.id, text, position);
 }
+
+const distance = (from: Point, to: Point) => Math.hypot(from.x - to.x, from.y - to.y);
+const editLabel = (event: MouseEvent) => {
+  const mappedPosition = toCanvas(event);
+  const limit = distance(start.position, end.position) / 4;
+  const distanceToStart = distance(start.position, mappedPosition);
+  const distanceToEnd = distance(end.position, mappedPosition);
+  if (distanceToStart < limit) {
+    startLabel.value?.edit();
+  } else if (distanceToEnd < limit) {
+    endLabel.value?.edit();
+  } else {
+    middleLabel.value?.edit();
+  }
+};
 </script>
 
 <template>
@@ -190,18 +209,24 @@ const commitLabelChange = (text: string, position: 'start' | 'middle' | 'end') =
       data-type="curve">
         <path :d="d"></path>
         <path
+          v-click-handler="{
+            click: () => { $emit('focus', $props.id); },
+            dblclick: editLabel
+          }"
           class="handle"
-          :d="d"
-          @click.stop="$emit('focus', $props.id)"></path>
+          :d="d"></path>
         <RelationLabelComponent
+          ref="startLabel"
           :position="startLabelPosition"
           :text="$props.from.text"
           @text-changed="(text: string) => commitLabelChange(text, 'start')" />
         <RelationLabelComponent
+          ref="middleLabel"
           :position="position"
           :text="$props.text"
           @text-changed="(text: string) => commitLabelChange(text, 'middle')" />
         <RelationLabelComponent
+          ref="endLabel"
           :position="endLabelPosition"
           :text="$props.to.text"
           @text-changed="(text: string) => commitLabelChange(text, 'end')" />

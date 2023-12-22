@@ -28,9 +28,10 @@ defineExpose({
 </script>
 
 <template>
-  <g @click="edit">
+  <g
+    v-if="state === 'edit' || $props.text.length > 0"
+    @click="edit">
     <TextElement
-      v-if="state === 'edit' || $props.text.length > 0"
       :value="$props.text"
       :edit="state === 'edit'"
       :position="$props.position"
