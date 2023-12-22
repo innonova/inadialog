@@ -7,8 +7,10 @@ import TextElement from './TextElement.vue';
 withDefaults(defineProps<{
   position: Point
   text: string
+  aligned?: 'left' | 'center' | 'right'
 }>(), {
-  position: () => ({ x: 0, y: 0 })
+  position: () => ({ x: 0, y: 0 }),
+  aligned: 'center'
 })
 
 defineEmits<{
@@ -32,6 +34,7 @@ defineExpose({
     v-if="state === 'edit' || $props.text.length > 0"
     @click="edit">
     <TextElement
+      :aligned="$props.aligned"
       :value="$props.text"
       :edit="state === 'edit'"
       :position="$props.position"

@@ -8,9 +8,11 @@ import { Point } from '../../composables/curve';
 interface Props {
   value: string
   edit: boolean
+  aligned?: 'left' | 'center' | 'right'
   position?: Point
 }
 const props = withDefaults(defineProps<Props>(), {
+  aligned: 'center',
   position: () => ({ x: 0, y: 0 })
 });
 defineEmits<{
@@ -37,13 +39,35 @@ defineExpose({
 watch(() => props.value, (value) => {
   text.value = value;
 });
+
+const aligned = computed(() => props.aligned || 'center');
+const anchor = computed(() => {
+  switch (props.aligned) {
+  case 'left':
+    return 'start';
+  case 'right':
+    return 'end';
+  case 'center':
+  default:
+    return 'middle';
+  }
+});
+const factors = {
+  'left': 0,
+  'center': 0.5,
+  'right': 1
+}
+const alignedPosition = computed(() => {
+  const factor = factors[props.aligned]
+  return props.position.x - width.value * factor
+});
 </script>
 
 <template>
-  <text ref="textElement" :y="13 + position.y - height / 2">
+  <text ref="textElement" :y="13 + position.y - height / 2" :text-anchor="anchor">
     <template v-for="(line, index) of lines" :key="index">
       <tspan
-        :x="position.x - width / 2"
+        :x="position.x"
         :dy="index > 0 ? '1em' : '0'"
         :visibility="line.length === 0 ? 'hidden' : undefined">
         {{ line.length > 0 ? line : '.' }}
@@ -54,7 +78,7 @@ watch(() => props.value, (value) => {
     v-if="edit"
     :height="height + 8"
     :width="width"
-    :transform="`translate(${position.x - width / 2} ${position.y - height / 2})`">
+    :transform="`translate(${alignedPosition} ${position.y - height / 2})`">
     <textarea
       v-model="text"
       v-focus
@@ -86,5 +110,6 @@ foreignObject textarea {
   overflow: hidden;
   resize: none;
   padding: 0;
+  text-align: v-bind('aligned');
 }
 </style>

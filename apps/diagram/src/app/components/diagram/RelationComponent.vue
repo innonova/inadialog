@@ -162,11 +162,11 @@ const sideOffset = (side: Side | null): Point => {
   case 'left':
     return { x: -16, y: -16 };
   case 'right':
-    return { x: 32, y: -16 };
+    return { x: 16, y: -16 };
   case 'top': 
-    return { x: 32, y: -16 };
+    return { x: 16, y: -16 };
   case 'bottom':
-    return { x: 32, y: 16 };
+    return { x: 16, y: 16 };
   default:
     return { x: 0, y: 0 };
   }
@@ -201,6 +201,15 @@ const editLabel = (event: MouseEvent) => {
     middleLabel.value?.edit();
   }
 };
+const aligned = (side: Ref<Side | null>) => {
+  if (side.value === 'left') {
+    return 'right';
+  }
+  if (side.value === 'right') {
+    return 'left';
+  }
+  return 'left';
+}
 </script>
 
 <template>
@@ -217,6 +226,7 @@ const editLabel = (event: MouseEvent) => {
           :d="d"></path>
         <RelationLabelComponent
           ref="startLabel"
+          :aligned="aligned(start.side)"
           :position="startLabelPosition"
           :text="$props.from.text"
           @text-changed="(text: string) => commitLabelChange(text, 'start')" />
@@ -227,6 +237,7 @@ const editLabel = (event: MouseEvent) => {
           @text-changed="(text: string) => commitLabelChange(text, 'middle')" />
         <RelationLabelComponent
           ref="endLabel"
+          :aligned="aligned(end.side)"
           :position="endLabelPosition"
           :text="$props.to.text"
           @text-changed="(text: string) => commitLabelChange(text, 'end')" />
