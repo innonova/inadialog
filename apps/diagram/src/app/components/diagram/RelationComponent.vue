@@ -12,6 +12,7 @@ import RelationEndpointComponent from './RelationEndpointComponent.vue';
 import { RelationId } from '../../composables/model/relation';
 import { DockingPoint, Side } from '../../composables/shapes';
 import RelationLabelComponent from './RelationLabelComponent.vue';
+import { useCanvas } from '../../composables/canvas';
 
 type EndpointProps = {
   id: ShapeId,
@@ -129,21 +130,23 @@ const connect = (shapeId: ShapeId | null, type: 'start' | 'end') => {
   }
 }
 
+const { toCanvas } = useCanvas();
+const mappedPosition = computed(() => toCanvas(mouse.value));
 const disconnect = (type: 'start' | 'end') => {
   if (type === 'start' && watchStart) {
     watchStart();
-    watchStart = watch(mouse ,() => {
+    watchStart = watch(mappedPosition ,() => {
       // map movement of endpoint to start object
-      start.position.x = mouse.value.x;
-      start.position.y = mouse.value.y;
+      start.position.x = mappedPosition.value.x;
+      start.position.y = mappedPosition.value.y;
     });
   }
   if (type === 'end' && watchEnd) {
     watchEnd();
-    watchEnd = watch(mouse , () => {
+    watchEnd = watch(mappedPosition, () => {
       // map movement of endpoint to end object
-      end.position.x = mouse.value.x;
-      end.position.y = mouse.value.y;
+      end.position.x = mappedPosition.value.x;
+      end.position.y = mappedPosition.value.y;
     });
   }
 }
